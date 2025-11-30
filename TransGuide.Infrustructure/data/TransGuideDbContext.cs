@@ -7,29 +7,29 @@ using TransGuide.Data.Entities.Identity;
 
 namespace TransGuide.Data
 {
-	public class TransGuideDbContext : IdentityDbContext<
-		UserProfile,                      
-		IdentityRole<int>,
-		int,
-		IdentityUserClaim<int>,
-		IdentityUserRole<int>,
-		IdentityUserLogin<int>,
-		IdentityRoleClaim<int>,
-		IdentityUserToken<int>>
-	{
-		
+    public class TransGuideDbContext : IdentityDbContext<
+        UserProfile,
+        IdentityRole<int>,
+        int,
+        IdentityUserClaim<int>,
+        IdentityUserRole<int>,
+        IdentityUserLogin<int>,
+        IdentityRoleClaim<int>,
+        IdentityUserToken<int>>
+    {
 
-		public TransGuideDbContext(DbContextOptions<TransGuideDbContext> options)
-			: base(options)
-		{
-		}
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
-			base.OnModelCreating(modelBuilder);
+        public TransGuideDbContext(DbContextOptions<TransGuideDbContext> options)
+            : base(options)
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Station>()
-                .Property(s => s.Latitude)     
+                .Property(s => s.Latitude)
                 .HasPrecision(10, 7);
 
             modelBuilder.Entity<Station>()
@@ -38,22 +38,22 @@ namespace TransGuide.Data
 
             // UserProfile
             modelBuilder.Entity<UserProfile>()
-                .Property(u => u.CurrentLatitude)  
+                .Property(u => u.CurrentLatitude)
                 .HasPrecision(10, 7);
 
             modelBuilder.Entity<UserProfile>()
                 .Property(u => u.CurrentLongitude)
                 .HasPrecision(11, 7);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-		}
+        }
 
-		// DbSets
-		public DbSet<Route> Routes { get; set; }
-		public DbSet<Station> Stations { get; set; }
-		public DbSet<UserProfile> UserProfiles { get; set; }
-		public DbSet<RouteStatus> RouteStatuses { get; set; }
-		public DbSet<Feedback> Feedbacks { get; set; }
-		public DbSet<Rating> Ratings { get; set; }
-		public DbSet<TripStatus> TripStatuses { get; set; }
-	}
+        // DbSets
+        public DbSet<Route> Routes { get; set; }
+        public DbSet<Station> Stations { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<RouteStatus> RouteStatuses { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Rating> Ratings { get; set; }
+        public DbSet<TripStatus> TripStatuses { get; set; }
+    }
 }

@@ -23,11 +23,19 @@ public class RatingRepository : GenericRepository<Rating>, IRatingRepository
 
     public async Task<double> GetAverageRatingForTripAsync(int tripId)
     {
-        return await _context.Ratings
-       .Where(r => r.TripId == tripId)
-       .Select(r => (double)r.Score)
-       .DefaultIfEmpty(0)
-       .AverageAsync();
+        var scores = await _context.Ratings
+            .Where(r => r.TripId == tripId)
+            .Select(r => r.Score)
+            .ToListAsync();
 
+        if (!scores.Any())
+            return 0.0;
+
+        return scores.Average(r => (double)r);
+    }
+    public async Task<double> GetOverallAverageAsync()
+    {
+        var scores = await _context.Ratings.Select(r => r.Score).ToListAsync();
+        return scores.Any() ? scores.Average(s => (double)s) : 0.0;
     }
 }

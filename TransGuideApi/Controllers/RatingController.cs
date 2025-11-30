@@ -27,7 +27,6 @@ public class RatingController : ControllerBase
 
         var newRating = await _ratingRepo.AddAsync(rating);
 
-        // 🔔 إرسال إشعار فوري لكل المتصلين
         await _hubContext.Clients.All.SendAsync("ReceiveNewRating", newRating);
 
         return Ok(newRating);
@@ -45,5 +44,12 @@ public class RatingController : ControllerBase
     {
         var average = await _ratingRepo.GetAverageRatingForTripAsync(tripId);
         return Ok(new { AverageRating = average });
+    }
+
+    [HttpGet("average/all")]
+    public async Task<IActionResult> GetOverallAverage()
+    {
+        var avg = await _ratingRepo.GetOverallAverageAsync();
+        return Ok(new { OverallAverage = avg });
     }
 }
