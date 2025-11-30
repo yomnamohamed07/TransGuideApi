@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Data.Repositories;
 using TransGuideApi.Hub_SignalR;
+using TransGuideApi.DTOs;
 
 namespace TransGuideApi.Controllers;
 
@@ -20,10 +21,18 @@ public class RatingController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddRating(Rating rating)
+    public async Task<IActionResult> AddRating(RatingDto dto)
     {
-        if (rating.Score < 1 || rating.Score > 5)
+        if (dto.Score < 1 || dto.Score > 5)
             return BadRequest("التقييم يجب أن يكون بين 1 و 5.");
+
+        var rating = new Rating
+        {
+            UserId = dto.UserId,
+            TripId = dto.TripId,
+            Score = dto.Score,
+            Comment = dto.Comment
+        };
 
         var newRating = await _ratingRepo.AddAsync(rating);
 
@@ -31,6 +40,7 @@ public class RatingController : ControllerBase
 
         return Ok(newRating);
     }
+    
 
     [HttpGet("trip/{tripId}")]
     public async Task<IActionResult> GetRatingsByTrip(int tripId)

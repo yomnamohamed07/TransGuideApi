@@ -14,7 +14,7 @@ namespace TransGuide.Infrustructure.Configrations
 			builder.HasKey(f => f.Id);
 
 			// Comment
-			builder.Property(f => f.Comment)
+			builder.Property(f => f.Content)
 				   .IsRequired()
 				   .HasMaxLength(500);
 
@@ -22,11 +22,6 @@ namespace TransGuide.Infrustructure.Configrations
 			builder.Property(f => f.DateTime)
 				   .IsRequired();
 
-			// Rating Relation (Many-to-One)
-			builder.HasOne(f => f.Rating)
-				   .WithMany()
-				   .HasForeignKey(f => f.RatingId)
-				   .OnDelete(DeleteBehavior.Restrict);
 
 			// UserProfile Relation (Many-to-One)
 			builder.HasOne(f => f.UserProfile)

@@ -25,6 +25,7 @@ namespace TransGuideApi
             //Repository
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+            builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 
             var app = builder.Build();
             // Configure the HTTP request pipeline.

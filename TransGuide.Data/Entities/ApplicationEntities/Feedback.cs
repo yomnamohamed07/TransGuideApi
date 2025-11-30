@@ -11,26 +11,22 @@ namespace TransGuide.Data.Entities.ApplicationEntities
 	{
         public int Id  { get; set; }
 
-        public  string?  Comment  { get; set; }
+        public  string  Content  { get; set; }
 
-        // date 
-        public  DateTime DateTime  { get; set; }
-
-        public  int RatingId  { get; set; }
+        public string? Title { get; set; }
+        public  DateTime DateTime  { get; set; }= DateTime.UtcNow;
 
 
-		public Rating Rating  { get; set; }
+        public  int?  UserProfileId { get; set; }
 
-        public  int  UserProfileId { get; set; }
+        public  int?  RouteId { get; set; }
 
-        public  int  RouteId { get; set; }
+		public int? TripStatusId { get; set; }
 
-		public int TripStatusId { get; set; }
+        public TripStatus? TripStatus { get; set; }
 
-        public TripStatus TripStatus { get; set; }
+        public Route?  Route { get; set; }
 
-        public Route  Route { get; set; }
-
-        public  UserProfile UserProfile { get; set; }
+        public  UserProfile? UserProfile { get; set; }
     }
 }
