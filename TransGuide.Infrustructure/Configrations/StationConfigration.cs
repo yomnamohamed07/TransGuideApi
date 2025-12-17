@@ -15,6 +15,14 @@ namespace TransGuide.Infrustructure.Configrations
 		{
 			builder.HasKey(s => s.Id);
 			builder.Property(s => s.Name).IsRequired().HasMaxLength(100);
+
+			// تحديد precision و scale للـ decimal
+			builder.Property(s => s.Latitude)
+				   .HasPrecision(9, 6); // مثال: 123.456789
+
+			builder.Property(s => s.Longitude)
+				   .HasPrecision(9, 6);
+
 		}
 	}
 }
