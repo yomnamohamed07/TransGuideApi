@@ -17,10 +17,6 @@ namespace TransGuide.Data.Entities.Identity
 
         public  string  PhoneNumber { get; set; }
 
-        public  decimal CurrentLongitude { get; set; }
-
-        public  decimal CurrentLatidude { get; set; }
-
         public 	ICollection<Route> Route { get; set; } = new HashSet<Route>();
 	}
 }
