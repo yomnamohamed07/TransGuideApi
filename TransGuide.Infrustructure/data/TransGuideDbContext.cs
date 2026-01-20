@@ -27,6 +27,10 @@ namespace TransGuide.Data
 		{
 			base.OnModelCreating(modelBuilder);
 
+    
+
+
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 			// Apply any entity configurations
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
@@ -53,6 +57,8 @@ namespace TransGuide.Data
 				new Rating { Id = (int)RatingEnum.VeryBad, Name = "Very Bad" }
 			);
 		}
+
+
 
 		// DbSets
 		public DbSet<Route> Routes { get; set; }
