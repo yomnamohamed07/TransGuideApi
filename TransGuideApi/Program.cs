@@ -2,6 +2,7 @@ using TransGuideApi.MiddleWare;
 using Microsoft.EntityFrameworkCore;
 using TransGuide.Data;
 using TransGuide.Infrustructure.data;
+using TransGuideApi.Extentions;
 
 namespace TransGuideApi
 {
@@ -16,9 +17,12 @@ namespace TransGuideApi
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
-			//builder.Services.AddDbContext<TransGuideDbContext>(options =>
-	      //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-			builder.Services.AddDbContext<TransGuideDbContext>(options =>
+            builder.Services.AddApplicationService(builder.Configuration);
+
+
+            //builder.Services.AddDbContext<TransGuideDbContext>(options =>
+            //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<TransGuideDbContext>(options =>
 			{
 				options.UseSqlServer(
 					builder.Configuration.GetConnectionString("DefaultConnection"));
