@@ -28,7 +28,7 @@ namespace TransGuide.Infrastructure.Configurations
 			builder.Property(r => r.EndPoint)
 				   .HasMaxLength(150);
 
-			builder.Property(r => r.AverageTimeInMintues)
+			builder.Property(r => r.AverageTimeInMinutes)
 	               .HasPrecision(5, 2);
 
 
@@ -38,8 +38,12 @@ namespace TransGuide.Infrastructure.Configurations
 				   .HasForeignKey(r => r.RouteStatusId)
 				   .OnDelete(DeleteBehavior.Restrict);
 
-			builder.HasMany(r => r.Stations)
-					.WithMany(s => s.Routes);
+			//builder.HasMany(r => r.Stations)
+			//	.WithMany(s => s.Routes);
+
+			builder.HasMany(r => r.RouteStations)
+			 .WithOne(rs => rs.Route)
+			 .HasForeignKey(rs => rs.RouteId);
 
 			builder.HasMany(r => r.UserProfiles)
 					.WithMany(u => u.Route);

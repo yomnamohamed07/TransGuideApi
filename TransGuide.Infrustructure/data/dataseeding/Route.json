@@ -1,0 +1,217 @@
+[
+  {
+    "Name": "M5",
+    "StartPoint": "الحي الخامس",
+    "EndPoint": "التحرير",
+    "Region": "قطامية",
+    "Description": "التجمع الخامس إلى التحرير مرورًا بشارع التسعين، محور المشير، العباسية، ورمسيس",
+    "TicketPrice": 40,
+    "AverageTimeInMinutes": 90,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "M8",
+    "StartPoint": "التجمع الخامس",
+    "EndPoint": "التحرير",
+    "Region": "قطامية",
+    "Description": "التجمع الخامس الى جامعة القاهرة مرورا بشارع التسعين والطريق الدائرى ومصر القديمة",
+    "TicketPrice": 40,
+    "AverageTimeInMinutes": 90,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "M9",
+    "StartPoint": "التجمع الخامس",
+    "EndPoint": "ميدان الاتحاد في المعادي",
+    "Region": "قطامية",
+    "Description": "الحي الخامس إلى ميدان الاتحاد في المعادي مرورًا بشارع التسعين والطريق الدائري وصقر قريش المعادي",
+    "TicketPrice": 40,
+    "AverageTimeInMinutes": 90,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "M10",
+    "StartPoint": "وادي دجلة",
+    "EndPoint": "التحرير",
+    "Region": "أكتوبر",
+    "Description": "وادي دجلة إلى التحرير مرورًا بالحصري، محور 26 يوليو، نادي الزمالك، ورمسيس",
+    "TicketPrice": 40,
+    "AverageTimeInMinutes": 90,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "M21",
+    "StartPoint": "ليله القدر - أكتوبر",
+    "EndPoint": "التحرير",
+    "Region": "أكتوبر",
+    "Description": "ليله القدر إلى التحرير مرورًا بميدان فودافون، بوابوات حدائق الاهرام والهرم وجامعة القاهرة",
+    "TicketPrice": 40,
+    "AverageTimeInMinutes": 100,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "M20",
+    "StartPoint": "الشيخ زايد",
+    "EndPoint": "التحرير",
+    "Region": "زايد",
+    "Description": "من زايد الى جامعة القاهرة مرورا بهايبر وان وصفط اللبن",
+    "TicketPrice": 35,
+    "AverageTimeInMinutes": 50,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "M22",
+    "StartPoint": "حدائق أكتوبر",
+    "EndPoint": "جامعة القاهرة",
+    "Region": "زايد",
+    "Description": "من حدائق اكتوبر الى جامعة القاهرة مرورا ببوابات حدائق الاهرام وشارع فيصل",
+    "TicketPrice": 22,
+    "AverageTimeInMinutes": 30,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NC1",
+    "StartPoint": "قطامية - التجمع الثالث",
+    "EndPoint": "التجمع الأول",
+    "Region": "القاهرة الجديدة",
+    "Description": "من  القطامية بالتجمع التالت الى التجمع الاول مرورا باربيلا والياسمين",
+    "TicketPrice": 20,
+    "AverageTimeInMinutes": 30,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NC2",
+    "StartPoint": "قطامية - التجمع الثالث",
+    "EndPoint": "لوتس",
+    "Region": "القاهرة الجديدة",
+    "Description": "من القطامية بالتجمع التالت الى اللوتس بالتجمع الخامس مرورا باربيلا والنرجس والجامعة الامريكيه",
+    "TicketPrice": 22,
+    "AverageTimeInMinutes": 50,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NS5",
+    "StartPoint": "محطة المشتل - الشروق",
+    "EndPoint": "المهندسين",
+    "Region": "الشروق",
+    "Description": "المشتل في الشروق إلى المهندسين مرورًا بطريق السويس، طيبة اللواء، وامتداد رمسيس",
+    "TicketPrice": 35,
+    "AverageTimeInMinutes": 75,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NS7",
+    "StartPoint": "محطة المشتل - الشروق",
+    "EndPoint": "سرايا القبة",
+    "Region": "الشروق",
+    "Description": "المشتل في الشروق إلى سرايا القبة مرورًا بطريق السويس، ميدان الساعة، وروكسي",
+    "TicketPrice": 35,
+    "AverageTimeInMinutes": 80,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NS9",
+    "StartPoint": "محطة المشتل - الشروق",
+    "EndPoint": "التجمع الخامس",
+    "Region": "الشروق",
+    "Description": "المشتل في الشروق إلى التجمع الخامس مرورًا بطريق السويس والرحاب حتى محطة الغاز",
+    "TicketPrice": 35,
+    "AverageTimeInMinutes": 80,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NA13",
+    "StartPoint": "الاردنيه",
+    "EndPoint": "حى اللورد",
+    "Region": "العاشر من رمضان",
+    "Description": "من الاردنية الى حى  اللودر",
+    "TicketPrice": 12,
+    "AverageTimeInMinutes": 80,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NA15",
+    "StartPoint": "الأردنيه",
+    "EndPoint": "الحي الثالث",
+    "Region": "العاشر من رمضان",
+    "Description": "الأردنيه إلى الحي الثالث",
+    "TicketPrice": 13,
+    "AverageTimeInMinutes": 80,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NA18",
+    "StartPoint": "الأردنية",
+    "EndPoint": "سلطان عويدس",
+    "Region": "العاشر من رمضان",
+    "Description": "الأردنية إلى سلطان عويدس",
+    "TicketPrice": 13,
+    "AverageTimeInMinutes": 80,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "NA19",
+    "StartPoint": "الأردنية",
+    "EndPoint": "الجامعة الاهليه",
+    "Region": "العاشر من رمضان",
+    "Description": "الأردنية إلى الجامعة الاهليه",
+    "TicketPrice": 13,
+    "AverageTimeInMinutes": 80,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "AN3",
+    "StartPoint": "عبور 2",
+    "EndPoint": "  سنترال الياسمين",
+    "Region": "عبور2",
+    "Description": "عبور 2 إلى ياسمين سنترال مرورًا بمدرسة الحرية وماركت التيسير",
+    "TicketPrice": 12,
+    "AverageTimeInMinutes": 25,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "AN4",
+    "StartPoint": "كارفور",
+    "EndPoint": "حي الباقوت",
+    "Region": "عبور2",
+    "Description": "كارفور إلى حي الباقوت مرورًا بامون وطريق السادات ",
+    "TicketPrice": 12,
+    "AverageTimeInMinutes": 30,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "AN6",
+    "StartPoint": "موقف الشباب",
+    "EndPoint": "مول الكرامة",
+    "Region": "مجتمعات الشرق",
+    "Description": "موقف الشباب إلى مول الكرامة مرورًا بحي الحرية أمامي، مدرسة الجمهورية، حي المجد، مدرسة الشيماء، وشارع عباد الرحمن",
+    "TicketPrice": 18,
+    "AverageTimeInMinutes": 28,
+    "RouteStatusId": 1
+  }
+,
+  {
+    "Name": "Z4",
+    "StartPoint": "الشيخ زايد",
+    "EndPoint": "دهشور",
+    "Region": "مجتمعات الغرب",
+    "Description": "الشيخ زايد إلى دهشور مرورًا بميدان جهينة وجنوب مصر",
+    "TicketPrice": 20,
+    "AverageTimeInMinutes": 30,
+    "RouteStatusId": 1
+  },
+  {
+    "Name": "Z6",
+    "StartPoint": "هايبر وان",
+    "EndPoint": "سادس",
+    "Region": "مجتمعات الغرب ",
+    "Description": "هايبر وان إلى سادس مرورًا بجنه والحصري",
+    "TicketPrice": 20,
+    "AverageTimeInMinutes": 50,
+    "RouteStatusId": 1
+  }
+]
+
+
+
+  

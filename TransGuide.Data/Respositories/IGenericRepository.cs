@@ -10,4 +10,9 @@ public interface IGenericRepository<T> where T : class
     Task UpdateAsync(T entity);
     Task DeleteAsync(int id);
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
+
+	IQueryable<T> GetNoTracking();
+
+	Task SaveChangesAsync();
 }
+

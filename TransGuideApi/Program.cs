@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using TransGuideApi.MiddleWare;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -7,12 +8,13 @@ using System.Text;
 using TransGuide.Data;
 using TransGuide.Data.Entities.Identity;
 using TransGuideApi.Services;
+using TransGuide.Infrustructure.data;
 
 namespace TransGuideApi
 {
 	public class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
@@ -52,10 +54,10 @@ namespace TransGuideApi
     });
             });
 
-            builder.Services.AddDbContext<TransGuideDbContext>(options =>
-            options.UseSqlServer(
-            builder.Configuration.GetConnectionString("DefaultConnection"),
-            sqlServerOptions => sqlServerOptions.MigrationsAssembly("TransGuideApi") 
+            //builder.Services.AddDbContext<TransGuideDbContext>(options =>
+           // options.UseSqlServer(
+           // builder.Configuration.GetConnectionString("DefaultConnection"),
+          //  sqlServerOptions => sqlServerOptions.MigrationsAssembly("TransGuideApi") 
     )
 );
 
@@ -91,22 +93,53 @@ namespace TransGuideApi
         });
             builder.Services.AddSingleton<ResetCodeService>();
 
-            var app = builder.Build();
+   
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+     
 
-            app.UseHttpsRedirection();
+      
+			builder.Services.AddSwaggerGen();
+			//builder.Services.AddDbContext<TransGuideDbContext>(options =>
+	      //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+			builder.Services.AddDbContext<TransGuideDbContext>(options =>
+			{
+				options.UseSqlServer(
+					builder.Configuration.GetConnectionString("DefaultConnection"));
+
+				options.EnableSensitiveDataLogging();
+			});
+
+			var app = builder.Build();
+			using (var scope = app.Services.CreateScope())
+			{
+				var services = scope.ServiceProvider;
+				var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+
+				try
+				{
+					var dbcontext = services.GetRequiredService<TransGuideDbContext>();
+					await dbcontext.Database.MigrateAsync();
+					await dataseeding.SeedAsync(dbcontext);
+				}
+				catch (Exception ex)
+				{
+					var logger = loggerFactory.CreateLogger<Program>();
+					logger.LogError(ex, "Error occurred during applying migration");
+				}
+			}
+			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment())
+			{
+				app.UseMiddleware<ExceptionMiddleWare>();
+				app.UseSwagger();
+				app.UseSwaggerUI();
+			}
 
             app.UseAuthentication(); 
 
             app.UseAuthorization();
 
-
+      app.UseHttpsRedirection();
             app.MapControllers();
 
 			app.Run();

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TransGuide.Data.Entities.ApplicationEntities;
 
+
 namespace TransGuide.Infrustructure.Configrations
 {
 	public class FeedbackConfigration : IEntityTypeConfiguration<Feedback>

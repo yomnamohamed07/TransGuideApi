@@ -18,7 +18,6 @@ namespace TransGuide.Data.Entities.ApplicationEntities
 
         public  int RatingId  { get; set; }
 
-
 		public Rating Rating  { get; set; }
 
         public  int  UserProfileId { get; set; }
