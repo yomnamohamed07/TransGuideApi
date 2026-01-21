@@ -48,12 +48,12 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
 	public IQueryable<T> GetNoTracking()
 	{
-		return _dbcontext.Set<T>().AsNoTracking().AsQueryable();
+		return _context.Set<T>().AsNoTracking().AsQueryable();
 	}
 
 	public async Task SaveChangesAsync()
 	{
-		await _dbcontext.SaveChangesAsync();
+		await _context.SaveChangesAsync();
 	}
 
 }

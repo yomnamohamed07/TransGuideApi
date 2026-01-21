@@ -58,8 +58,7 @@ namespace TransGuideApi
            // options.UseSqlServer(
            // builder.Configuration.GetConnectionString("DefaultConnection"),
           //  sqlServerOptions => sqlServerOptions.MigrationsAssembly("TransGuideApi") 
-    )
-);
+
 
             // Identity configuration
             builder.Services.AddIdentity<UserProfile, IdentityRole<int>>(options =>
