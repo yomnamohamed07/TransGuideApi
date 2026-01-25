@@ -30,5 +30,6 @@ namespace TransGuide.Data.Entities.ApplicationEntities
         public ICollection<UserProfile> UserProfiles { get; set; } = new HashSet<UserProfile>();
 
         public ICollection<Station> Stations { get; set; } = new HashSet<Station>();
+        public List<RouteStation> RouteStations { get; set; } = new();
     }
 }

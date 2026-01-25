@@ -12,8 +12,8 @@ using TransGuide.Data;
 namespace TransGuide.Infrustructure.Migrations
 {
     [DbContext(typeof(TransGuideDbContext))]
-    [Migration("20251130231803_AddFeedbackTitleAndContent")]
-    partial class AddFeedbackTitleAndContent
+    [Migration("20260125193723_AddUserFeedbackTable")]
+    partial class AddUserFeedbackTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -188,73 +188,6 @@ namespace TransGuide.Infrustructure.Migrations
                     b.ToTable("RouteUserProfile");
                 });
 
-            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Feedback", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("RouteId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("TripStatusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserProfileId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RouteId");
-
-                    b.HasIndex("TripStatusId");
-
-                    b.HasIndex("UserProfileId");
-
-                    b.ToTable("Feedbacks");
-                });
-
-            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Rating", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Ratings");
-                });
-
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
                 {
                     b.Property<int>("Id")
@@ -300,6 +233,24 @@ namespace TransGuide.Infrustructure.Migrations
                     b.HasIndex("RouteStatusId");
 
                     b.ToTable("Routes");
+                });
+
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteStation", b =>
+                {
+                    b.Property<int>("RouteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("RouteId", "StationId");
+
+                    b.HasIndex("StationId");
+
+                    b.ToTable("RouteStations");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteStatus", b =>
@@ -364,6 +315,46 @@ namespace TransGuide.Infrustructure.Migrations
                     b.ToTable("TripStatuses");
                 });
 
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.UserFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TimeSlot")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserFeedbacks");
+                });
+
             modelBuilder.Entity("TransGuide.Data.Entities.Identity.UserProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -418,7 +409,6 @@ namespace TransGuide.Infrustructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
@@ -529,30 +519,6 @@ namespace TransGuide.Infrustructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Feedback", b =>
-                {
-                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.Route", "Route")
-                        .WithMany()
-                        .HasForeignKey("RouteId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.TripStatus", "TripStatus")
-                        .WithMany()
-                        .HasForeignKey("TripStatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("TransGuide.Data.Entities.Identity.UserProfile", "UserProfile")
-                        .WithMany()
-                        .HasForeignKey("UserProfileId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Route");
-
-                    b.Navigation("TripStatus");
-
-                    b.Navigation("UserProfile");
-                });
-
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
                 {
                     b.HasOne("TransGuide.Data.Entities.ApplicationEntities.RouteStatus", "Status")
@@ -562,6 +528,35 @@ namespace TransGuide.Infrustructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteStation", b =>
+                {
+                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.Route", "Route")
+                        .WithMany("RouteStations")
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.Station", "Station")
+                        .WithMany("RouteStations")
+                        .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Route");
+
+                    b.Navigation("Station");
+                });
+
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
+                {
+                    b.Navigation("RouteStations");
+                });
+
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Station", b =>
+                {
+                    b.Navigation("RouteStations");
                 });
 #pragma warning restore 612, 618
         }

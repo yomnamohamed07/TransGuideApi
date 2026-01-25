@@ -15,7 +15,7 @@ namespace TransGuide.Data.Entities.Identity
 
 		public string? Address { get; set; }
 
-        public  string  PhoneNumber { get; set; }
+        public  string? PhoneNumber { get; set; }
 
         public  decimal CurrentLongitude { get; set; }
 
