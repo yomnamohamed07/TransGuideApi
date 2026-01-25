@@ -1,4 +1,4 @@
-﻿namespace TransGuideApi.Models
+﻿namespace TransGuide.Services.Modelsls
 {
     public class UpdateUserDataRequest
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TransGuideApi.Models
+namespace TransGuide.Services.Models
 {
     public class UpdatePasswordRequest
     {

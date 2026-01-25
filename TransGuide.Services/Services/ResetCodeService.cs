@@ -1,4 +1,4 @@
-﻿namespace TransGuideApi.Services
+﻿namespace TransGuide.Services.Services
 {
     public class ResetCodeService
     {
