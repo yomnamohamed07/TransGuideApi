@@ -10,6 +10,7 @@ using TransGuide.Data.Entities.Identity;
 using TransGuide.Infrustructure.data;
 using TransGuide.Services.Mappings;
 using TransGuide.Services.Services;
+using TransGuide.Services.Hubs;
 using TransGuideApi.MiddleWare;
 
 namespace TransGuideApi
@@ -81,6 +82,10 @@ namespace TransGuideApi
 
             builder.Services.AddScoped<IAuthService, AuthService>();
 
+            builder.Services.AddSignalR();
+
+            builder.Services.AddScoped<NotificationService>();
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -135,6 +140,7 @@ namespace TransGuideApi
 
             app.UseHttpsRedirection();
             app.MapControllers();
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.Run();
         }

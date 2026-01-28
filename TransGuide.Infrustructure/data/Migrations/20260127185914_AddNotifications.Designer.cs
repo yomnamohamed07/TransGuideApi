@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TransGuide.Data;
 
@@ -11,9 +12,11 @@ using TransGuide.Data;
 namespace TransGuide.Infrustructure.data.Migrations
 {
     [DbContext(typeof(TransGuideDbContext))]
-    partial class TransGuideDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260127185914_AddNotifications")]
+    partial class AddNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,7 +170,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasIndex("UserProfilesId");
 
-                    b.ToTable("RouteUserProfile", (string)null);
+                    b.ToTable("RouteUserProfile");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Feedback", b =>
@@ -208,7 +211,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasIndex("UserProfileId");
 
-                    b.ToTable("Feedbacks", (string)null);
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Notification", b =>
@@ -239,7 +242,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Rating", b =>
@@ -256,7 +259,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Ratings", (string)null);
+                    b.ToTable("Ratings");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
@@ -306,7 +309,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasIndex("RouteStatusId");
 
-                    b.ToTable("Routes", (string)null);
+                    b.ToTable("Routes");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteStation", b =>
@@ -324,7 +327,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasIndex("StationId");
 
-                    b.ToTable("RouteStations", (string)null);
+                    b.ToTable("RouteStations");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteStatus", b =>
@@ -342,7 +345,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RouteStatuses", (string)null);
+                    b.ToTable("RouteStatuses");
 
                     b.HasData(
                         new
@@ -385,7 +388,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Stations", (string)null);
+                    b.ToTable("Stations");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.TripStatus", b =>
@@ -403,7 +406,7 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TripStatuses", (string)null);
+                    b.ToTable("TripStatuses");
 
                     b.HasData(
                         new
