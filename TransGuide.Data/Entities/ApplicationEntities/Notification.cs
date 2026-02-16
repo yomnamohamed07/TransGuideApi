@@ -1,18 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using TransGuide.Data.Entities.Identity;
 
 namespace TransGuide.Data.Entities.ApplicationEntities
 {
     public class Notification
     {
-        public int Id { get; set; }
-        public string UserId { get; set; } = string.Empty; // Identity User ID
-        public string Title { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
+        [Key]
+        public int NotificationId { get; set; }
+
+        public  int UserId { get; set; }
+
+        [Required, MaxLength(500)]
+        public required string Message { get; set; }
+
+        [Required]
+        public DateTime TimeSent { get; set; } = DateTime.UtcNow;
+
         public bool IsRead { get; set; } = false;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [MaxLength(50)]
+        public string NotificationType { get; set; } = "System";
+
+        [ForeignKey("UserId")]
+        public virtual UserProfile? User { get; set; }
     }
 }

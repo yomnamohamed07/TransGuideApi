@@ -12,8 +12,8 @@ using TransGuide.Data;
 namespace TransGuide.Infrustructure.data.Migrations
 {
     [DbContext(typeof(TransGuideDbContext))]
-    [Migration("20260127185914_AddNotifications")]
-    partial class AddNotifications
+    [Migration("20260215224632_AddNotificationEntity")]
+    partial class AddNotificationEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -189,6 +189,9 @@ namespace TransGuide.Infrustructure.data.Migrations
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
                     b.Property<int>("RatingId")
                         .HasColumnType("int");
 
@@ -203,8 +206,6 @@ namespace TransGuide.Infrustructure.data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RatingId");
-
                     b.HasIndex("RouteId");
 
                     b.HasIndex("TripStatusId");
@@ -216,50 +217,36 @@ namespace TransGuide.Infrustructure.data.Migrations
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Notification", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("NotificationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("NotificationType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("TimeSent")
+                        .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Rating", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.HasKey("NotificationId");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.HasIndex("UserId");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("Ratings");
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
@@ -583,12 +570,6 @@ namespace TransGuide.Infrustructure.data.Migrations
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Feedback", b =>
                 {
-                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.Rating", "Rating")
-                        .WithMany()
-                        .HasForeignKey("RatingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("TransGuide.Data.Entities.ApplicationEntities.Route", "Route")
                         .WithMany()
                         .HasForeignKey("RouteId")
@@ -607,13 +588,22 @@ namespace TransGuide.Infrustructure.data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Rating");
-
                     b.Navigation("Route");
 
                     b.Navigation("TripStatus");
 
                     b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Notification", b =>
+                {
+                    b.HasOne("TransGuide.Data.Entities.Identity.UserProfile", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
@@ -654,6 +644,11 @@ namespace TransGuide.Infrustructure.data.Migrations
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Station", b =>
                 {
                     b.Navigation("RouteStations");
+                });
+
+            modelBuilder.Entity("TransGuide.Data.Entities.Identity.UserProfile", b =>
+                {
+                    b.Navigation("Notifications");
                 });
 #pragma warning restore 612, 618
         }

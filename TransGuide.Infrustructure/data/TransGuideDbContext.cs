@@ -58,10 +58,10 @@ namespace TransGuide.Data
 		public DbSet<UserProfile> UserProfiles { get; set; }
 		public DbSet<RouteStatus> RouteStatuses { get; set; }
 		public DbSet<Feedback> Feedbacks { get; set; }
-		public DbSet<Rating> Ratings { get; set; }
 		public DbSet<TripStatus> TripStatuses { get; set; }
         public  DbSet<RouteStation> RouteStations { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+
     }
 }
 
