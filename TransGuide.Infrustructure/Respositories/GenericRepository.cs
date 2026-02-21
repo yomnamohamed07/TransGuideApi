@@ -44,4 +44,15 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
     public async Task<IEnumerable<T>> FindAsync(System.Linq.Expressions.Expression<System.Func<T, bool>> predicate) =>
         await _context.Set<T>().Where(predicate).ToListAsync();
+
+	public IQueryable<T> GetNoTracking()
+	{
+		return _context.Set<T>().AsNoTracking().AsQueryable();
+	}
+
+	public async Task SaveChangesAsync()
+	{
+		await _context.SaveChangesAsync();
+	}
+
 }
