@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,9 @@ namespace TransGuide.Data.Entities.ApplicationEntities
 
         public  int RatingId  { get; set; }
 
-		public Rating Rating  { get; set; }
+        [Required]
+        [Range(1, 5)]
+        public int Rating  { get; set; }
 
         public  int  UserProfileId { get; set; }
 

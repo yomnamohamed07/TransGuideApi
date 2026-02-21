@@ -48,14 +48,6 @@ namespace TransGuide.Data
 				new RouteStatus { Id = (int)RouteStatusEnum.Closed, Name = "Closed" }
 			);
 
-			//  Seed Rating 
-			modelBuilder.Entity<Rating>().HasData(
-				new Rating { Id = (int)RatingEnum.Execellent, Name = "Excellent" },
-				new Rating { Id = (int)RatingEnum.VeryGood, Name = "Very Good" },
-				new Rating { Id = (int)RatingEnum.Good, Name = "Good" },
-				new Rating { Id = (int)RatingEnum.Bad, Name = "Bad" },
-				new Rating { Id = (int)RatingEnum.VeryBad, Name = "Very Bad" }
-			);
 		}
 
 
@@ -66,9 +58,10 @@ namespace TransGuide.Data
 		public DbSet<UserProfile> UserProfiles { get; set; }
 		public DbSet<RouteStatus> RouteStatuses { get; set; }
 		public DbSet<Feedback> Feedbacks { get; set; }
-		public DbSet<Rating> Ratings { get; set; }
 		public DbSet<TripStatus> TripStatuses { get; set; }
         public  DbSet<RouteStation> RouteStations { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
     }
 }
 

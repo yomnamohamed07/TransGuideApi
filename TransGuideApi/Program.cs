@@ -11,6 +11,9 @@ using TransGuide.Infrustructure.data;
 using TransGuide.Services.Mappings;
 using TransGuide.Services.Services;
 using TransGuideApi.MiddleWare;
+using TransiGuide.Data.Repositories;
+using TransiGuide.Infrastructure.Repositories;
+using TransiGuide.Services.Services;
 
 namespace TransGuideApi
 {
@@ -80,6 +83,11 @@ namespace TransGuideApi
             builder.Services.AddAutoMapper(typeof(UserProfileMapping)); 
 
             builder.Services.AddScoped<IAuthService, AuthService>();
+
+            builder.Services.AddSignalR();
+
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             builder.Services.AddAuthentication(options =>
             {
