@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using TransGuide.Data;
+using TransGuide.Data.Repositories;
+using TransGuide.Infrastructure.Repositories;
 using TransGuide.Data.Entities.Identity;
 using TransGuide.Infrustructure.data;
 using TransGuide.Services.Mappings;
@@ -19,10 +21,24 @@ namespace TransGuideApi
 {
     public class Program
     {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+    public class Program
+    {
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add services to the container.
+            builder.Services.AddControllers();
+
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle  
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<TransGuideDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             // Add services to the container.
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle  
@@ -111,12 +127,22 @@ namespace TransGuideApi
 
             // Removed duplicate AddSwaggerGen() call here
 
+            // Repository
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+            var app = builder.Build();
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
                 try
                 {
                     var dbcontext = services.GetRequiredService<TransGuideDbContext>();
@@ -137,6 +163,9 @@ namespace TransGuideApi
                 app.UseSwaggerUI();
             }
 
+            app.UseHttpsRedirection();
+            app.UseAuthorization();
+            app.MapControllers();
             app.UseAuthentication();
 
             app.UseAuthorization();
