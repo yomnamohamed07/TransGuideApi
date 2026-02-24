@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TransGuide.Data;
 using TransGuide.Data.Repositories;
 using TransGuide.Infrustructure.data;

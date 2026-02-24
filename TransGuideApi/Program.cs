@@ -17,12 +17,12 @@ namespace TransGuideApi
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
-            builder.Services.AddApplicationService(builder.Configuration);
+			builder.Services.AddApplicationService(builder.Configuration);
 
 
-            //builder.Services.AddDbContext<TransGuideDbContext>(options =>
-            //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            builder.Services.AddDbContext<TransGuideDbContext>(options =>
+			//builder.Services.AddDbContext<TransGuideDbContext>(options =>
+	      //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+			builder.Services.AddDbContext<TransGuideDbContext>(options =>
 			{
 				options.UseSqlServer(
 					builder.Configuration.GetConnectionString("DefaultConnection"));

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
@@ -16,14 +16,13 @@ public class RouteRepository : GenericRepository<Route>, IRouteRepository
         _context = context;
         _dbset = _context.Set<Route>();
     }
- 
 
     public async Task<Pagination<Route>> GetRoutesPaginatedAsync(int pageindex,
                                                                                    int pagesize,
                                                              Expression<Func<Route, bool>> filter)
     {
         var Query = _dbset.AsNoTracking().AsQueryable();
-        if(filter != null)
+        if (filter != null)
         {
             Query = Query.Where(filter);
         }
@@ -31,7 +30,7 @@ public class RouteRepository : GenericRepository<Route>, IRouteRepository
         var items = await Query
                              .OrderBy(r => r.Name)
                              .Include(r => r.RouteStations)
-                             .ThenInclude(rs=>rs.Station)
+                             .ThenInclude(rs => rs.Station)
                              .Skip((pageindex - 1) * pagesize)
                              .Take(pagesize)
                              .ToListAsync();
@@ -44,4 +43,5 @@ public class RouteRepository : GenericRepository<Route>, IRouteRepository
         );
 
     }
+
 }
