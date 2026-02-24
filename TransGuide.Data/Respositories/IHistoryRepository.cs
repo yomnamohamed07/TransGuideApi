@@ -1,0 +1,14 @@
+﻿
+using TransGuide.Data.Entities.Identity;
+
+
+namespace TransGuide.Data.Respositories
+{
+    public interface IHistoryRepository
+    {
+        Task<History?> GetHistoryAsync(string key);
+        Task<History?> CreateorUpdateHistoryAsync(History? History, TimeSpan? TimeToLive = null);
+
+        Task<bool> DeleteHistoryAsync(string key);
+    }
+}
