@@ -1,11 +1,10 @@
-
+﻿
 using AutoMapper;
 using TransGuide.Data.Helper;
 using TransGuide.Data.MaPppingProfiles;
 using TransGuide.Data.Repositories;
-using TransGuide.Data.Services;
 
-namespace TransGuide.Services
+namespace TransGuide.Services.Services
 {
     public class LocationServices : ILocationServices
 
