@@ -13,17 +13,14 @@ using TransGuide.Infrustructure.data;
 using TransGuide.Services.Mappings;
 using TransGuide.Services.Services;
 using TransGuideApi.MiddleWare;
-using TransiGuide.Data.Repositories;
+using TransGuide.Data.Respositories;
 using TransiGuide.Infrastructure.Repositories;
 using TransiGuide.Services.Services;
+using TransGuideApi.Extentions;
 
 namespace TransGuideApi
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+  
     public class Program
     {
         public static async Task Main(string[] args)
@@ -40,6 +37,8 @@ namespace TransGuideApi
             builder.Services.AddDbContext<TransGuideDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             // Add services to the container.
+            builder.Services.AddApplicationService(builder.Configuration);
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle  
             builder.Services.AddEndpointsApiExplorer();
@@ -96,14 +95,7 @@ namespace TransGuideApi
             .AddEntityFrameworkStores<TransGuideDbContext>()
             .AddDefaultTokenProviders();
 
-            builder.Services.AddAutoMapper(typeof(UserProfileMapping)); 
-
-            builder.Services.AddScoped<IAuthService, AuthService>();
-
-            builder.Services.AddSignalR();
-
-            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-            builder.Services.AddScoped<INotificationService, NotificationService>();
+           
 
             builder.Services.AddAuthentication(options =>
             {

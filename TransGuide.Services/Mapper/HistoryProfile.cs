@@ -9,7 +9,7 @@ namespace TransGuide.Services.Mapper
         public HistoryProfile()
         {
             CreateMap<History, HistoryDto>().ReverseMap();
-            CreateMap<Trip , TripDto>().ReverseMap();
+            CreateMap<Trip, TripDto>().ReverseMap();
         }
     }
 }

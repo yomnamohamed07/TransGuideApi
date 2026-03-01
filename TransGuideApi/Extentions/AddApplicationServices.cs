@@ -46,7 +46,16 @@ namespace TransGuideApi.Extentions
             Services.AddScoped<TransGuide.Data.Respositories.IHistoryRepository, TransGuide.Infrustructure.Respositories.HistoryRepository>();
 			Services.AddScoped<IHistoryServices, HistoryServices>();
 			Services.AddScoped<IRouteRepository, RouteRepository>();
-			Services.AddScoped<ILocationServices, LocationServices>();
+			Services.AddScoped<ILocationServices, LocationServices>(); 
+			Services.AddAutoMapper(typeof(UserProfileMapping));
+
+         Services.AddScoped<IAuthService, AuthService>();
+
+          Services.AddSignalR();
+
+           Services.AddScoped<INotificationRepository, NotificationRepository>();
+            Services.AddScoped<INotificationService, NotificationService>();
+
 
             Services.AddSingleton<IConnectionMultiplexer>((_) =>
             {
