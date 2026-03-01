@@ -1,8 +1,19 @@
 ﻿
-using TransGuide.Data.Repositories;
-using TransGuide.Infrastructure.Repositories;
+using TransGuide.Data.Respositories;
+using TransGuide.Infrustructure.Respositories;
 using Microsoft.AspNetCore.Mvc;
 using TransGuideApi.Errors;
+using TransGuide.Services;
+using TransGuide.Data.Services;
+using StackExchange.Redis;
+using Microsoft.AspNetCore.Identity;
+using TransGuide.Data.Entities.Identity;
+using TransGuide.Data;
+using AutoMapper;
+using TransGuide.Services.Mapper;
+using TransGuide.Services.Services;
+using TransGuide.Infrastructure.Repositories;
+using TransGuide.Data.Repositories;
 namespace TransGuideApi.Extentions
 {
 	
@@ -10,11 +21,11 @@ namespace TransGuideApi.Extentions
 		{
 			public static IServiceCollection AddApplicationService(this IServiceCollection Services, IConfiguration configuration)
 			{
-				Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-			
+				
+			Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-				//builder.Services.AddAutoMapper(m=>m.AddProfile(new MappingProfiles()));
-				Services.Configure<ApiBehaviorOptions>(
+		
+            Services.Configure<ApiBehaviorOptions>(
 					Options => Options.InvalidModelStateResponseFactory = (actioncontext) => {
 
 						var errors = actioncontext.ModelState.Where(e => e.Value.Errors.Count() > 0)
@@ -29,8 +40,27 @@ namespace TransGuideApi.Extentions
 					}
 
 					);
-				
-				return Services;
+            Services.AddAutoMapper(m => m.AddProfile(typeof(RouteProfile)));
+            Services.AddAutoMapper(m => m.AddProfile(typeof(HistoryProfile)));
+
+            Services.AddScoped<TransGuide.Data.Respositories.IHistoryRepository, TransGuide.Infrustructure.Respositories.HistoryRepository>();
+			Services.AddScoped<IHistoryServices, HistoryServices>();
+			Services.AddScoped<IRouteRepository, RouteRepository>();
+			Services.AddScoped<ILocationServices, LocationServices>();
+
+            Services.AddSingleton<IConnectionMultiplexer>((_) =>
+            {
+                return ConnectionMultiplexer.Connect(configuration.GetConnectionString("RedisConnectionString"));
+            });
+            Services.AddScoped<IServicesManager, ServicesManager>();
+            //Services.AddIdentity<UserProfile, IdentityRole>();
+            //Services.AddIdentiy<>().AddEntityFrameworkStores<TransGuideDbContext>() .AddDefaultTokenProviders();
+            Services.AddIdentity<UserProfile, IdentityRole<int>>().AddEntityFrameworkStores<TransGuideDbContext>().AddDefaultTokenProviders();
+            Services.AddHttpContextAccessor();
+             // Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+
+            return Services;
 			}
 		}
 	}
