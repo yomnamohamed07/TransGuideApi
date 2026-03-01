@@ -3,6 +3,7 @@ using AutoMapper;
 using TransGuide.Data.Helper;
 using TransGuide.Data.MaPppingProfiles;
 using TransGuide.Data.Repositories;
+using TransGuide.Data.Services;
 
 namespace TransGuide.Services.Services
 {
@@ -65,7 +66,8 @@ namespace TransGuide.Services.Services
                 }
 
                 return dto;
-            }).ToList();
+            }).OrderBy(r => r.RouteLengthInKm).
+            ToList();
             return new Pagination<RouteDto>(
                 pageIndex,
                 pageSize,
