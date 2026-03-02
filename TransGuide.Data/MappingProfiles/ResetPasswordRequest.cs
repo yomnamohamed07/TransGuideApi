@@ -1,6 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
-namespace TransGuide.Services.Models
+
+namespace TransGuide.Data.MappingProfiles
 {
     public class ResetPasswordRequest
     {

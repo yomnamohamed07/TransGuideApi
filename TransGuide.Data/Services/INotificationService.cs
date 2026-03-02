@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using TransiGuide.Services.Models;
+﻿using TransGuide.Data.MappingProfiles;
 
-namespace TransiGuide.Services.Services
+
+
+namespace TransGuide.Data.Services
 {
     public interface INotificationService
     {
-        Task<IEnumerable<NotificationRequest>> GetUserNotificationsAsync(int userId);
         Task<IEnumerable<NotificationRequest>> GetUnreadNotificationsAsync(int userId);
         Task<int> GetUnreadCountAsync(int userId);
         Task<NotificationRequest> SendNotificationAsync(CreateNotificationRequest dto);
@@ -17,5 +16,6 @@ namespace TransiGuide.Services.Services
         Task SendWelcomeNotificationAsync(int userId);
         Task SendAppUpdateNotificationAsync(int userId, string updateMessage);
         Task SendFeedbackRequestAsync(int userId, int tripId);
+
     }
 }

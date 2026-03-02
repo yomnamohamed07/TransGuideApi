@@ -10,14 +10,14 @@ using TransGuide.Data.Repositories;
 using TransGuide.Infrastructure.Repositories;
 using TransGuide.Data.Entities.Identity;
 using TransGuide.Infrustructure.data;
+using TransGuide.Services.Mappings;
+using TransGuide.Services.Services;
+using TransGuideApi.MiddleWare;
+using TransGuideApi.Extentions;
 
 namespace TransGuideApi
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+   
     public class Program
     {
         public static async Task Main(string[] args)
@@ -29,6 +29,9 @@ namespace TransGuideApi
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
+            builder.Services.AddApplicationService(builder.Configuration);
+
+
 			//builder.Services.AddDbContext<TransGuideDbContext>(options =>
 	      //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 			builder.Services.AddDbContext<TransGuideDbContext>(options =>
@@ -50,16 +53,6 @@ namespace TransGuideApi
             })
             .AddEntityFrameworkStores<TransGuideDbContext>()
             .AddDefaultTokenProviders();
-
-            builder.Services.AddAutoMapper(typeof(UserProfileMapping)); 
-
-            builder.Services.AddScoped<IAuthService, AuthService>();
-
-            builder.Services.AddSignalR();
-
-            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-            builder.Services.AddScoped<INotificationService, NotificationService>();
-
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,7 +78,6 @@ namespace TransGuideApi
             // Repository
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-            var app = builder.Build();
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {
@@ -117,16 +109,15 @@ namespace TransGuideApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
             app.UseHttpsRedirection();
-            app.UseAuthorization();
-            app.MapControllers();
-            app.UseAuthentication();
 
-            app.UseAuthorization();
+            app.UseAuthentication();   
+            app.UseAuthorization();    
 
-            app.UseHttpsRedirection();
             app.MapControllers();
+
+            app.Run();
+
 
             app.Run();
         }

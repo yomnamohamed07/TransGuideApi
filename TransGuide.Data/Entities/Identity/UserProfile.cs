@@ -13,11 +13,7 @@ namespace TransGuide.Data.Entities.Identity
 
 	    public string? Address { get; set; }
 
-      
         public  new string?  PhoneNumber { get; set; }
-
-        public decimal CurrentLatitude { get; set; }
-        public decimal CurrentLongitude { get; set; }
 
         public 	ICollection<Route> Route { get; set; } = new HashSet<Route>();
 

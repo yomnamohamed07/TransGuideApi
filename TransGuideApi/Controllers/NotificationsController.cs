@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using TransiGuide.Services.Models;
-using TransiGuide.Services.Services;
+using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.Services;
+
 
 namespace TransGuideApi.Controllers
 {
@@ -17,9 +16,6 @@ namespace TransGuideApi.Controllers
             _notificationService = notificationService;
         }
 
-        /// <summary>
-        /// Get all notifications for user (provide userId in query)
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NotificationRequest>>> GetAll([FromQuery] int userId)
         {
@@ -27,9 +23,7 @@ namespace TransGuideApi.Controllers
             return Ok(notifications);
         }
 
-        /// <summary>
-        /// Get unread notifications for user (provide userId in query)
-        /// </summary>
+       
         [HttpGet("unread")]
         public async Task<ActionResult<IEnumerable<NotificationRequest>>> GetUnread([FromQuery] int userId)
         {
@@ -37,9 +31,7 @@ namespace TransGuideApi.Controllers
             return Ok(notifications);
         }
 
-        /// <summary>
-        /// Get count of unread notifications (provide userId in query)
-        /// </summary>
+      
         [HttpGet("unread/count")]
         public async Task<ActionResult<int>> GetUnreadCount([FromQuery] int userId)
         {
@@ -47,9 +39,7 @@ namespace TransGuideApi.Controllers
             return Ok(count);
         }
 
-        /// <summary>
-        /// Mark notification as read
-        /// </summary>
+      
         [HttpPatch("{id}/read")]
         public async Task<ActionResult<bool>> MarkAsRead(int id)
         {
@@ -57,9 +47,7 @@ namespace TransGuideApi.Controllers
             return result ? Ok(true) : NotFound("Notification not found");
         }
 
-        /// <summary>
-        /// Mark all notifications as read (provide userId in query)
-        /// </summary>
+      
         [HttpPatch("read-all")]
         public async Task<ActionResult<bool>> MarkAllAsRead([FromQuery] int userId)
         {
@@ -67,9 +55,7 @@ namespace TransGuideApi.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Delete a notification
-        /// </summary>
+    
         [HttpDelete("{id}")]
         public async Task<ActionResult<bool>> Delete(int id)
         {
@@ -77,9 +63,6 @@ namespace TransGuideApi.Controllers
             return result ? Ok(true) : NotFound("Notification not found");
         }
 
-        /// <summary>
-        /// Create a notification
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult<NotificationRequest>> Create([FromBody] CreateNotificationRequest request)
         {

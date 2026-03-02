@@ -1,15 +1,10 @@
 ﻿
-using TransGuide.Data.Respositories;
-using TransGuide.Infrustructure.Respositories;
+
 using Microsoft.AspNetCore.Mvc;
 using TransGuideApi.Errors;
 using TransGuide.Services;
 using TransGuide.Data.Services;
 using StackExchange.Redis;
-using Microsoft.AspNetCore.Identity;
-using TransGuide.Data.Entities.Identity;
-using TransGuide.Data;
-using AutoMapper;
 using TransGuide.Services.Mapper;
 using TransGuide.Services.Services;
 using TransGuide.Infrastructure.Repositories;
@@ -52,13 +47,13 @@ namespace TransGuideApi.Extentions
 			Services.AddScoped<IRouteRepository, RouteRepository>();
 			Services.AddScoped<ILocationServices, LocationServices>(); 
 			Services.AddAutoMapper(typeof(UserProfileMapping));
+            Services.AddAutoMapper(typeof(UserProfileMapping));
+            Services.AddScoped<IAuthService, AuthService>();
 
-         Services.AddScoped<IAuthService, AuthService>();
+             Services.AddSignalR();
 
-          Services.AddSignalR();
-
-           Services.AddScoped<INotificationRepository, NotificationRepository>();
-            Services.AddScoped<INotificationService, NotificationService>();
+             Services.AddScoped<INotificationRepository, NotificationRepository>();
+              Services.AddScoped<INotificationService, NotificationService>();
 
 
             Services.AddSingleton<IConnectionMultiplexer>((_) =>
@@ -68,7 +63,7 @@ namespace TransGuideApi.Extentions
             Services.AddScoped<IServicesManager, ServicesManager>();
             //Services.AddIdentity<UserProfile, IdentityRole>();
             //Services.AddIdentiy<>().AddEntityFrameworkStores<TransGuideDbContext>() .AddDefaultTokenProviders();
-            Services.AddIdentity<UserProfile, IdentityRole<int>>().AddEntityFrameworkStores<TransGuideDbContext>().AddDefaultTokenProviders();
+             //  Services.AddIdentity<UserProfile, IdentityRole<int>>().AddEntityFrameworkStores<TransGuideDbContext>().AddDefaultTokenProviders();
             Services.AddHttpContextAccessor();
              // Services.AddScoped<ICurrentUserService, CurrentUserService>();
 

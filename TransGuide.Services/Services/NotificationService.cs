@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
 using TransGuide.Data.Entities.ApplicationEntities;
+using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.Services;
 using TransiGuide.Data.Repositories; 
-using TransiGuide.Services.Models;
+
 
 namespace TransiGuide.Services.Services
 {

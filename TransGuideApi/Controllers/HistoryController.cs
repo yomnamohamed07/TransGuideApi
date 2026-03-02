@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TransGuide.Data.MaPppingProfiles;
 using TransGuide.Services;
 using TransGuide.Services.DTOS;
@@ -17,14 +18,14 @@ namespace TransGuideApi.Controllers
             _servicesManager = servicesManager;
         }
 
-
+        [Authorize]
         [HttpGet("MyHistory")]
         public async Task<IActionResult> GetMyHistory()
         {
             string userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+           if (string.IsNullOrEmpty(userId))
+               return Unauthorized();
 
             var history = await _servicesManager.HistoryRepository.GetHistoryAsync(userId);
 
@@ -34,7 +35,7 @@ namespace TransGuideApi.Controllers
             return Ok(history.Trips); 
         }
 
-       
+        [Authorize]
         [HttpDelete("{key}")]
         public async Task<IActionResult> DeleteHistory(string key)
         {

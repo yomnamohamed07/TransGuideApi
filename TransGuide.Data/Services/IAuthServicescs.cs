@@ -1,7 +1,8 @@
-﻿using TransGuide.Services.Models;
-using TransGuide.Services.Modelsls;
+﻿
 
-namespace TransGuide.Services.Services
+using TransGuide.Data.MappingProfiles;
+
+namespace TransGuide.Data.Services
 {
     public interface IAuthService
     {

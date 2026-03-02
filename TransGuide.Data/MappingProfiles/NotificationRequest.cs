@@ -1,10 +1,10 @@
-﻿using System;
+﻿
 using System.ComponentModel.DataAnnotations;
 
 
-namespace TransiGuide.Services.Models
+namespace TransGuide.Data.MappingProfiles
 {
-    public class NotificationRequest 
+    public class NotificationRequest
     {
         public int NotificationId { get; set; }
         public string Message { get; set; }

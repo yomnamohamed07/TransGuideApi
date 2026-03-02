@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using TransGuide.Services.Models;
-using TransGuide.Services.Modelsls;
-using TransGuide.Services.Services;
+using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.Services;
+
 
 namespace TransGuideApi.Controllers
 {
@@ -95,4 +95,5 @@ namespace TransGuideApi.Controllers
             var (succeeded, message) = await _authService.ResetPasswordAsync(model);
             return succeeded ? Ok(new { message }) : BadRequest(message);
         }
-    } }
+    } 
+}

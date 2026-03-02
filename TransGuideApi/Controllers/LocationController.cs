@@ -39,9 +39,7 @@ namespace TransGuideApi.Controllers
             }
         }
 
-        [HttpGet("SearchRoutes")]
-
-      
+            [HttpGet("SearchRoutes")]
             public async Task<IActionResult> SearchRoutes([FromBody] FilterDto filter, int pageIndex = 1, int pageSize = 10)
             {
                 try

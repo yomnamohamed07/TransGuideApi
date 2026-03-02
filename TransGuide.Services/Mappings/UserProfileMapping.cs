@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using TransGuide.Data.Entities.Identity;
-using TransGuide.Services.Models;
+using TransGuide.Data.MappingProfiles;
+
 
 namespace TransGuide.Services.Mappings
 {

@@ -5,8 +5,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TransGuide.Data.Entities.Identity;
-using TransGuide.Services.Models;
-using TransGuide.Services.Modelsls;
+using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.Services;
+
 
 namespace TransGuide.Services.Services
 {
@@ -82,8 +83,8 @@ namespace TransGuide.Services.Services
             if (!string.IsNullOrEmpty(model.Address))
                 user.Address = model.Address;
 
-            user.CurrentLatitude = model.CurrentLatitude;
-            user.CurrentLongitude = model.CurrentLongitude;
+           // user.CurrentLatitude = model.CurrentLatitude;
+           // user.CurrentLongitude = model.CurrentLongitude;
 
             var result = await _userManager.UpdateAsync(user);
             return result.Succeeded

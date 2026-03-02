@@ -1,4 +1,6 @@
-﻿namespace TransGuide.Services.Modelsls
+﻿
+
+namespace TransGuide.Data.MappingProfiles
 {
     public class UpdateUserDataRequest
     {

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
+using TransGuide.Services.DTOS;
 
 namespace TransGuide.Services.Services
 {
@@ -19,7 +20,7 @@ namespace TransGuide.Services.Services
 
         public async Task SubmitAsync(UserFeedback feedback)
         {
-            await _context.UserFeedbacks.AddAsync(feedback);
+            await _context.Feedbacks.AddAsync(feedback);
             await _context.SaveChangesAsync();
         }
     }

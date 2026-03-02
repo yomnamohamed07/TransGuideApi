@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
+using TransGuide.Services.DTOS;
 
 namespace TransGuideApi.Controllers
 {
@@ -21,7 +22,7 @@ namespace TransGuideApi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _context.UserFeedbacks.AddAsync(feedback);
+            await _context.Feedbacks.AddAsync(feedback);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "تم إرسال الملاحظات بنجاح" });

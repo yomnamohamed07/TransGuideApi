@@ -14,7 +14,7 @@ namespace TransGuide.Data.MaPppingProfiles
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
 
-     // public decimal  MaxDistanceKm { get; set; }
+       // public decimal  MaxDistanceKm { get; set; }
 
 
 
