@@ -14,6 +14,10 @@ using TransGuide.Services.Mapper;
 using TransGuide.Services.Services;
 using TransGuide.Infrastructure.Repositories;
 using TransGuide.Data.Repositories;
+using TransiGuide.Services.Services;
+using TransiGuide.Data.Repositories;
+using TransiGuide.Infrastructure.Repositories;
+using TransGuide.Services.Mappings;
 namespace TransGuideApi.Extentions
 {
 	
