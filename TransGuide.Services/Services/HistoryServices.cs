@@ -14,7 +14,7 @@ namespace TransGuide.Services
             var created = await _historyRepository.CreateorUpdateHistoryAsync(history);
             if (created is not null)
             {
-                return await GetHistoryAsync(history.Id);
+                return await GetHistoryAsync(history.UserId);
             }
             else
             {
@@ -27,9 +27,9 @@ namespace TransGuide.Services
         public async Task<bool> DeleteHistoryAsync(string Key)
         => await _historyRepository.DeleteHistoryAsync(Key);
 
-        public async Task<HistoryDto> GetHistoryAsync(string key)
+        public async Task<HistoryDto> GetHistoryAsync(string UserId)
         {
-            var history = await _historyRepository.GetHistoryAsync(key);
+            var history = await _historyRepository.GetHistoryAsync(UserId);
             if (history is not null)
             {
                 return _mapper.Map<History, HistoryDto>(history);

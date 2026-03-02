@@ -7,7 +7,9 @@ namespace TransGuide.Data.MappingProfiles
 
     public class HistoryDto
     {
-        public string Id { get; set; }
+       
+
+        public string UserId { get; set; }
 
         public List<Trip> Trips { get; set; } = new List<Trip>();
     }

@@ -1,12 +1,5 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore.Migrations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TransGuide.Data.Respositories;
-using TransGuide.Data.Services;
+
 
 namespace TransGuide.Services
 {
