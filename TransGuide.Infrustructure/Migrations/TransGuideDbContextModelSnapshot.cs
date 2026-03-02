@@ -387,7 +387,7 @@ namespace TransGuide.Infrustructure.Migrations
 
                     b.Property<decimal>("Longitude")
                         .HasPrecision(11, 7)
-                        .HasColumnType("decimal(11,7)");
+                        .HasColumnType("decimal(11,7)")
                         .HasPrecision(9, 6)
                         .HasColumnType("decimal(9,6)");
 
