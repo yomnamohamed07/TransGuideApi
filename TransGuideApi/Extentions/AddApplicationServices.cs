@@ -23,7 +23,6 @@ namespace TransGuideApi.Extentions
 				
 			Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-		
             Services.Configure<ApiBehaviorOptions>(
 					Options => Options.InvalidModelStateResponseFactory = (actioncontext) => {
 
@@ -45,27 +44,20 @@ namespace TransGuideApi.Extentions
             Services.AddScoped<TransGuide.Data.Respositories.IHistoryRepository, TransGuide.Infrustructure.Respositories.HistoryRepository>();
 			Services.AddScoped<IHistoryServices, HistoryServices>();
 			Services.AddScoped<IRouteRepository, RouteRepository>();
-			Services.AddScoped<ILocationServices, LocationServices>(); 
-			Services.AddAutoMapper(typeof(UserProfileMapping));
-            Services.AddAutoMapper(typeof(UserProfileMapping));
-            Services.AddScoped<IAuthService, AuthService>();
+			Services.AddScoped<ILocationServices, LocationServices>();
+            Services.AddScoped<INotificationRepository, NotificationRepository>();
+            Services.AddScoped<INotificationService, NotificationService>();
 
-             Services.AddSignalR();
-
-             Services.AddScoped<INotificationRepository, NotificationRepository>();
-              Services.AddScoped<INotificationService, NotificationService>();
-
+            Services.AddSignalR();
 
             Services.AddSingleton<IConnectionMultiplexer>((_) =>
             {
                 return ConnectionMultiplexer.Connect(configuration.GetConnectionString("RedisConnectionString"));
             });
             Services.AddScoped<IServicesManager, ServicesManager>();
-            //Services.AddIdentity<UserProfile, IdentityRole>();
-            //Services.AddIdentiy<>().AddEntityFrameworkStores<TransGuideDbContext>() .AddDefaultTokenProviders();
-             //  Services.AddIdentity<UserProfile, IdentityRole<int>>().AddEntityFrameworkStores<TransGuideDbContext>().AddDefaultTokenProviders();
+           
             Services.AddHttpContextAccessor();
-             // Services.AddScoped<ICurrentUserService, CurrentUserService>();
+   
 
 
             return Services;

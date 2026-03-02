@@ -1,95 +1,66 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+﻿
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
 using TransGuide.Data;
-using TransGuide.Data.Repositories;
-using TransGuide.Infrastructure.Repositories;
-using TransGuide.Data.Entities.Identity;
 using TransGuide.Infrustructure.data;
-using TransGuide.Services.Mappings;
-using TransGuide.Services.Services;
 using TransGuideApi.MiddleWare;
 using TransGuideApi.Extentions;
+using System;
 
 namespace TransGuideApi
 {
-   
+
     public class Program
     {
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-			// Add services to the container.
-			builder.Services.AddControllers();
-			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
+            // Add services to the container.
+            builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddApplicationService(builder.Configuration);
 
 
-			//builder.Services.AddDbContext<TransGuideDbContext>(options =>
-	      //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-			builder.Services.AddDbContext<TransGuideDbContext>(options =>
-			{
-				options.UseSqlServer(
-					builder.Configuration.GetConnectionString("DefaultConnection"));
+            //builder.Services.AddDbContext<TransGuideDbContext>(options =>
+            // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<TransGuideDbContext>(options =>
+            {
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"));
 
                 options.EnableSensitiveDataLogging();
             });
+            builder.Services.AddDbContext<TransGuideDbContext>(Options =>
+            {
+                Options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityDefaultConnection"));
+            }
+            );
 
-            // Identity configuration
-            builder.Services.AddIdentity<UserProfile, IdentityRole<int>>(options =>
+
+            builder.Services.AddApplicationService(builder.Configuration);
+            builder.Services.AddIdentityService(builder.Configuration);
+            builder.Services.AddCors(options =>
             {
-                options.User.RequireUniqueEmail = true;
-                options.Password.RequiredLength = 6;
-                options.Password.RequireDigit = true;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-            })
-            .AddEntityFrameworkStores<TransGuideDbContext>()
-            .AddDefaultTokenProviders();
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+                options.AddPolicy("MyPolice", options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = "TransiGuide",
-                    ValidAudience = "TransiGuideUsers",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ThisIsASecureKeyForTransiGuide!2025"))
-                };
+                    options.AllowAnyHeader();
+                    options.AllowAnyMethod();
+                    options.WithOrigins(builder.Configuration["FrontBaseUrl"]);
+                });
+
             });
-            builder.Services.AddSingleton<ResetCodeService>();
-
-            // Removed duplicate AddSwaggerGen() call here
-
-            // Repository
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             var app = builder.Build();
+
+
+            #region update database
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
                 try
                 {
                     var dbcontext = services.GetRequiredService<TransGuideDbContext>();
@@ -101,25 +72,30 @@ namespace TransGuideApi
                     var logger = loggerFactory.CreateLogger<Program>();
                     logger.LogError(ex, "Error occurred during applying migration");
                 }
+                #endregion
+
+              
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseMiddleware<ExceptionMiddleWare>();
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
+
+
+                app.UseHttpsRedirection();
+                app.UseStaticFiles();
+                app.UseCors("MyPolice");
+                app.UseAuthentication();
+                app.UseAuthorization();
+
+                app.MapControllers();
+
+                app.Run();
+
+
+           
             }
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseMiddleware<ExceptionMiddleWare>();
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-            app.UseHttpsRedirection();
-
-            app.UseAuthentication();   
-            app.UseAuthorization();    
-
-            app.MapControllers();
-
-            app.Run();
-
-
-            app.Run();
         }
     }
 }
