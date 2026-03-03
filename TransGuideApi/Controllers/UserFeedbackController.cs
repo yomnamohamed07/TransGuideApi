@@ -17,7 +17,7 @@ namespace TransGuideApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Submit([FromBody] UserFeedback feedback)
+        public async Task<IActionResult> Submit([FromBody] Feedback feedback)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

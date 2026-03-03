@@ -1,5 +1,4 @@
 ﻿
-
 using Microsoft.AspNetCore.Mvc;
 using TransGuideApi.Errors;
 using TransGuide.Services;
@@ -12,7 +11,7 @@ using TransGuide.Data.Repositories;
 using TransiGuide.Services.Services;
 using TransiGuide.Data.Repositories;
 using TransiGuide.Infrastructure.Repositories;
-using TransGuide.Services.Mappings;
+
 namespace TransGuideApi.Extentions
 {
 	
@@ -57,9 +56,7 @@ namespace TransGuideApi.Extentions
             Services.AddScoped<IServicesManager, ServicesManager>();
            
             Services.AddHttpContextAccessor();
-   
-
-
+  
             return Services;
 			}
 		}

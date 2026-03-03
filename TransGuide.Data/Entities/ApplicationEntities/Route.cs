@@ -24,10 +24,10 @@ namespace TransGuide.Data.Entities.ApplicationEntities
 
         public  RouteStatus Status { get; set; }
 
-        public ICollection<UserProfile> UserProfiles { get; set; } = new HashSet<UserProfile>();
+      //  public ICollection<UserProfile> UserProfiles { get; set; } = new HashSet<UserProfile>();
 
 		public ICollection<RouteStation> RouteStations { get; set; } = new HashSet<RouteStation>();
 
-		//public ICollection<Station> Stations { get; set; } = new HashSet<Station>();
+		public ICollection<Feedback>  Feedbacks { get; set; } = new HashSet<Feedback>();
 	}
 }

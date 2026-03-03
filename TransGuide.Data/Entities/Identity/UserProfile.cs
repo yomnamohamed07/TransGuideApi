@@ -15,8 +15,7 @@ namespace TransGuide.Data.Entities.Identity
 
         public  new string?  PhoneNumber { get; set; }
 
-        public 	ICollection<Route> Route { get; set; } = new HashSet<Route>();
-
-        public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+        public  ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }

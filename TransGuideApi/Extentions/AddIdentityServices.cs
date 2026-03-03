@@ -6,7 +6,7 @@ using TransGuide.Data.Entities.Identity;
 using TransGuide.Data;
 using TransGuide.Services.Services;
 using TransGuide.Data.Services;
-using TransGuide.Services.Mappings;
+using TransGuide.Services.Mapper;
 
 namespace TransGuideApi.Extentions
 {
@@ -53,10 +53,6 @@ namespace TransGuideApi.Extentions
 
 
            Services.AddSingleton<ResetCodeService>();
-
-
-
-
 
             return Services;
         }

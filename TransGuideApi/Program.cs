@@ -41,16 +41,7 @@ namespace TransGuideApi
 
             builder.Services.AddApplicationService(builder.Configuration);
             builder.Services.AddIdentityService(builder.Configuration);
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("MyPolice", options =>
-                {
-                    options.AllowAnyHeader();
-                    options.AllowAnyMethod();
-                    options.WithOrigins(builder.Configuration["FrontBaseUrl"]);
-                });
-
-            });
+       
 
             var app = builder.Build();
 
@@ -85,7 +76,7 @@ namespace TransGuideApi
 
                 app.UseHttpsRedirection();
                 app.UseStaticFiles();
-                app.UseCors("MyPolice");
+             
                 app.UseAuthentication();
                 app.UseAuthorization();
 

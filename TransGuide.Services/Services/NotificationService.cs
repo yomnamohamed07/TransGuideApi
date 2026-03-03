@@ -106,7 +106,7 @@ namespace TransiGuide.Services.Services
         {
             return new NotificationRequest
             {
-                NotificationId = notification.NotificationId,
+                NotificationId = notification.Id,
                 Message = notification.Message,
                 TimeSent = notification.TimeSent,
                 IsRead = notification.IsRead,

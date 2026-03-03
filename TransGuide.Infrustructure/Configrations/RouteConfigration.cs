@@ -45,8 +45,6 @@ namespace TransGuide.Infrastructure.Configurations
 			 .WithOne(rs => rs.Route)
 			 .HasForeignKey(rs => rs.RouteId);
 
-			builder.HasMany(r => r.UserProfiles)
-					.WithMany(u => u.Route);
 			
 
 	

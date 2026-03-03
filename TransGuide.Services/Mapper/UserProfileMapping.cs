@@ -2,8 +2,7 @@
 using TransGuide.Data.Entities.Identity;
 using TransGuide.Data.MappingProfiles;
 
-
-namespace TransGuide.Services.Mappings
+namespace TransGuide.Services.Mapper
 {
     public class UserProfileMapping : Profile
     {

@@ -6,6 +6,7 @@ namespace TransGuide.Data.Services
 {
     public interface INotificationService
     {
+        Task<IEnumerable<NotificationRequest>> GetUserNotificationsAsync(int userId);
         Task<IEnumerable<NotificationRequest>> GetUnreadNotificationsAsync(int userId);
         Task<int> GetUnreadCountAsync(int userId);
         Task<NotificationRequest> SendNotificationAsync(CreateNotificationRequest dto);
