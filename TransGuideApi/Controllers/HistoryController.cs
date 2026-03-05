@@ -36,7 +36,7 @@ namespace TransGuideApi.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{key}")]
+        [HttpDelete("DeleteHisrory{key}")]
         public async Task<IActionResult> DeleteHistory(string key)
         {
             try
@@ -51,6 +51,26 @@ namespace TransGuideApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new ApiExceptionResponse(500, "Something went wrong", ex.Message));
+            }
+        }
+        [Authorize]
+        [HttpDelete("DeleteTrip")]
+        public async Task<IActionResult> DeleteTrip(string userId, string tripId)
+        {
+            try
+            {
+                var result = await _servicesManager.HistoryServices
+                    .DeleteTripFromHistoryAsync(userId, tripId);
+
+                if (!result)
+                    return NotFound(new ApiExceptionResponse(404, "Trip not found"));
+
+                return Ok("Trip deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500,
+                    new ApiExceptionResponse(500, "Something went wrong", ex.Message));
             }
         }
     }

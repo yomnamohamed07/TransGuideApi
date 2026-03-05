@@ -2,6 +2,7 @@
 using StackExchange.Redis;
 using System.Text.Json;
 using TransGuide.Data.Entities.Identity;
+using TransGuide.Data.MappingProfiles;
 using TransGuide.Data.Respositories;
 
 public class HistoryRepository : IHistoryRepository
@@ -64,4 +65,37 @@ public class HistoryRepository : IHistoryRepository
 
         return await _database.KeyDeleteAsync(BuildKey(userId));
     }
+    public async Task<bool> DeleteTripFromHistoryAsync(string userId, string tripId)
+    {
+        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(tripId))
+            return false;
+
+        var key = BuildKey(userId);
+
+        var data = await _database.StringGetAsync(key);
+
+        if (data.IsNullOrEmpty)
+            return false;
+
+        var history = JsonSerializer.Deserialize<HistoryDto>(data!);
+
+        if (history == null || history.Trips == null)
+            return false;
+
+        var trip = history.Trips.FirstOrDefault(t => t.Id == tripId);
+
+        if (trip == null)
+            return false;
+
+        history.Trips.Remove(trip);
+
+        await _database.StringSetAsync(
+            key,
+            JsonSerializer.Serialize(history)
+        );
+
+        return true;
+    }
+
+
 }

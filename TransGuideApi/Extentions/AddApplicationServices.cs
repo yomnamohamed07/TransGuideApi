@@ -22,14 +22,10 @@ namespace TransGuideApi.Extentions
     {
         public static IServiceCollection AddApplicationService(this IServiceCollection services, IConfiguration configuration)
         {
-            // ===========================
-            // Generic Repository
-            // ===========================
+        
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-            // ===========================
-            // API Behavior for Model Validation
-            // ===========================
+         
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = actionContext =>

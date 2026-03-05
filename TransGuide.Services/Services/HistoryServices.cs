@@ -53,4 +53,10 @@ public class HistoryServices : IHistoryServices
 
     public async Task<bool> DeleteHistoryAsync(string userId)
         => await _repository.DeleteHistoryAsync(userId);
+
+    public async Task<bool> DeleteTripFromHistoryAsync(string userId, string tripId)
+    {
+        return await _repository.DeleteTripFromHistoryAsync(userId, tripId);
+    }
+
 }
