@@ -3,8 +3,8 @@ using TransGuide.Data.Respositories;
 
 namespace TransGuide.Services
 {
-    public class IServicesManager
+    public interface IServicesManager
     {
-        public IHistoryRepository HistoryRepository { get; set; }
+        public IHistoryServices HistoryServices{ get;  }
     }
 }

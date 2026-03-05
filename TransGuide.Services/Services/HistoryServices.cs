@@ -1,46 +1,56 @@
-﻿using AutoMapper;
-using TransGuide.Data.Respositories;
-using TransGuide.Data.Services;
-using TransGuide.Data.MappingProfiles;
+﻿
+using AutoMapper;
 using TransGuide.Data.Entities.Identity;
+using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.Respositories;
+using TransGuide.Services;
 
-namespace TransGuide.Services
+public class HistoryServices : IHistoryServices
 {
-    public class HistoryServices(IHistoryRepository _historyRepository, IMapper _mapper) : IHistoryServices
+    private readonly IHistoryRepository _repository;
+    private readonly IMapper _mapper;
+
+    public HistoryServices(IHistoryRepository repository, IMapper mapper)
     {
-        public async Task<HistoryDto> CreateorUpdateHistoryAsync(HistoryDto historydto)
-        {
-            var history = _mapper.Map<HistoryDto, History>(historydto);
-            var created = await _historyRepository.CreateorUpdateHistoryAsync(history);
-            if (created is not null)
-            {
-                return await GetHistoryAsync(history.UserId);
-            }
-            else
-            {
-                throw new Exception("Cant Create or Update History Now Try it Later");
-            }
-        }
-
-  
-
-        public async Task<bool> DeleteHistoryAsync(string Key)
-        => await _historyRepository.DeleteHistoryAsync(Key);
-
-        public async Task<HistoryDto> GetHistoryAsync(string UserId)
-        {
-            var history = await _historyRepository.GetHistoryAsync(UserId);
-            if (history is not null)
-            {
-                return _mapper.Map<History, HistoryDto>(history);
-            }
-            else
-            {
-                throw new Exception("Cant Create or Update History Now Try it Later");
-            }
-        }
-
-    
+        _repository = repository;
+        _mapper = mapper;
     }
-}
 
+    public async Task<HistoryDto> GetHistoryAsync(string userId)
+    {
+        var history = await _repository.GetHistoryAsync(userId);
+
+        if (history == null)
+        {
+            return new HistoryDto
+            {
+                UserId = userId,
+                Trips = new List<TripDto>()
+            };
+        }
+
+        var dto = _mapper.Map<HistoryDto>(history);
+        dto.Trips ??= new List<TripDto>();
+
+        return dto;
+    }
+
+    public async Task<HistoryDto> CreateorUpdateHistoryAsync(HistoryDto dto)
+    {
+        if (dto == null || string.IsNullOrWhiteSpace(dto.UserId))
+            throw new ArgumentException("Invalid history data");
+
+        dto.Trips ??= new List<TripDto>();
+
+        var entity = _mapper.Map<History>(dto);
+        var result = await _repository.CreateorUpdateHistoryAsync(entity);
+
+        if (result == null)
+            throw new Exception("Failed to save history");
+
+        return await GetHistoryAsync(dto.UserId);
+    }
+
+    public async Task<bool> DeleteHistoryAsync(string userId)
+        => await _repository.DeleteHistoryAsync(userId);
+}

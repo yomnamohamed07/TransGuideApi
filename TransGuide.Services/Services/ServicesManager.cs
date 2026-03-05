@@ -1,14 +1,24 @@
-﻿using AutoMapper;
+﻿
 
 
-namespace TransGuide.Services
-{
-   public class ServicesManager(Data.Respositories.IHistoryRepository historyRepository, IMapper mapper) : IServicesManager
+
+
+    namespace TransGuide.Services
     {
-        private readonly Lazy<IHistoryServices> _historyServices = new Lazy<IHistoryServices>(() => new HistoryServices(historyRepository, mapper));
-        public IHistoryServices historyservices => _historyServices.Value;
+   
+        public class ServicesManager : IServicesManager
+        {
+            private readonly IHistoryServices _historyServices;
 
-       
+            public ServicesManager(IHistoryServices historyServices)
+            {
+                _historyServices = historyServices
+                    ?? throw new ArgumentNullException(nameof(historyServices));
+            }
+
+            public IHistoryServices HistoryServices => _historyServices;
+        }
     }
-    
-}
+
+
+

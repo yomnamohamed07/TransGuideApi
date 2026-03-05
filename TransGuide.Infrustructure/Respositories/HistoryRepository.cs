@@ -1,47 +1,67 @@
 ﻿
-using TransGuide.Data.Respositories;
-using TransGuide.Data.Entities.Identity;
 using StackExchange.Redis;
 using System.Text.Json;
+using TransGuide.Data.Entities.Identity;
+using TransGuide.Data.Respositories;
 
-
-namespace TransGuide.Infrustructure.Respositories
+public class HistoryRepository : IHistoryRepository
 {
-    public class HistoryRepository(IConnectionMultiplexer connection) : IHistoryRepository
+    private readonly IDatabase _database;
+
+    public HistoryRepository(IConnectionMultiplexer connection)
     {
-        private readonly IDatabase _database = connection.GetDatabase();
+        _database = connection.GetDatabase();
+    }
 
-        public async Task<History?> CreateorUpdateHistoryAsync(History? history, TimeSpan? TimeToLive = null)
+    private string BuildKey(string userId)
+        => $"history:{userId}";
+
+    public async Task<History?> GetHistoryAsync(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return null;
+
+        var key = BuildKey(userId);
+        var value = await _database.StringGetAsync(key);
+
+        if (value.IsNullOrEmpty)
+            return null;
+
+        try
         {
-            var jsonhistory = JsonSerializer.Serialize(history);
-            var result = await _database.StringSetAsync(history.UserId, jsonhistory, TimeToLive ?? TimeSpan.FromDays(30));
-            if (result)
-            {
-                return await GetHistoryAsync(history.UserId);
-            }
-            else
-            {
-                return null;
-
-            }
+            return JsonSerializer.Deserialize<History>(value!);
         }
-
-            public async Task<bool> DeleteHistoryAsync(string key)
-              => await _database.KeyDeleteAsync(key);
-
-
-            public async Task<History?> GetHistoryAsync(string userid)
-            {
-                var key = userid.ToString();
-                var history = await _database.StringGetAsync(key);
-                if (history.IsNullOrEmpty)
-                {
-                    return null;
-                }
-                else
-                {
-                    return JsonSerializer.Deserialize<History>(history!);
-                }
-            }
+        catch
+        {
+            return null; 
         }
     }
+
+    public async Task<History?> CreateorUpdateHistoryAsync(
+        History? history,
+        TimeSpan? ttl = null)
+    {
+        if (history is null || string.IsNullOrWhiteSpace(history.UserId))
+            return null;
+
+        history.Trips ??= new List<Trip>();
+
+        var key = BuildKey(history.UserId);
+        var json = JsonSerializer.Serialize(history);
+
+        var saved = await _database.StringSetAsync(
+            key,
+            json,
+            ttl ?? TimeSpan.FromDays(30));
+
+        return saved ? history : null;
+    }
+
+    public async Task<bool> DeleteHistoryAsync(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return false;
+
+        return await _database.KeyDeleteAsync(BuildKey(userId));
+    }
+}

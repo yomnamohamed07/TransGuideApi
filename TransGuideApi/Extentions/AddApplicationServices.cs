@@ -1,64 +1,91 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
-using TransGuideApi.Errors;
-using TransGuide.Services;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using TransGuide.Data.Repositories;
 using TransGuide.Data.Services;
-using StackExchange.Redis;
+using TransGuide.Services;
 using TransGuide.Services.Mapper;
 using TransGuide.Services.Services;
+using TransGuideApi.Errors;
+using StackExchange.Redis;
 using TransGuide.Infrastructure.Repositories;
-using TransGuide.Data.Repositories;
-using TransiGuide.Services.Services;
 using TransiGuide.Data.Repositories;
 using TransiGuide.Infrastructure.Repositories;
+using TransiGuide.Services.Services;
+using TransGuide.Data.Respositories;
+using TransGuide.Infrustructure.Respositories;
 
 namespace TransGuideApi.Extentions
 {
-	
-		public static class AddApplicationServices
-		{
-			public static IServiceCollection AddApplicationService(this IServiceCollection Services, IConfiguration configuration)
-			{
-				
-			Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+    public static class AddApplicationServices
+    {
+        public static IServiceCollection AddApplicationService(this IServiceCollection services, IConfiguration configuration)
+        {
+            // ===========================
+            // Generic Repository
+            // ===========================
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-            Services.Configure<ApiBehaviorOptions>(
-					Options => Options.InvalidModelStateResponseFactory = (actioncontext) => {
+            // ===========================
+            // API Behavior for Model Validation
+            // ===========================
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var errors = actionContext.ModelState
+                        .Where(e => e.Value.Errors.Count() > 0)
+                        .SelectMany(e => e.Value.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
 
-						var errors = actioncontext.ModelState.Where(e => e.Value.Errors.Count() > 0)
-						.SelectMany(e => e.Value.Errors)
-						.Select(e => e.ErrorMessage)
-						.ToList();
-						var invaliderrors = new InvalidBadRequestResponse()
-						{
-							Errors = errors
-						};
-						return new BadRequestObjectResult(invaliderrors);
-					}
+                    var invalidErrors = new InvalidBadRequestResponse()
+                    {
+                        Errors = errors
+                    };
 
-					);
-            Services.AddAutoMapper(m => m.AddProfile(typeof(RouteProfile)));
-            Services.AddAutoMapper(m => m.AddProfile(typeof(HistoryProfile)));
+                    return new BadRequestObjectResult(invalidErrors);
+                };
+            });
 
-            Services.AddScoped<TransGuide.Data.Respositories.IHistoryRepository, TransGuide.Infrustructure.Respositories.HistoryRepository>();
-			Services.AddScoped<IHistoryServices, HistoryServices>();
-			Services.AddScoped<IRouteRepository, RouteRepository>();
-			Services.AddScoped<ILocationServices, LocationServices>();
-            Services.AddScoped<INotificationRepository, NotificationRepository>();
-            Services.AddScoped<INotificationService, NotificationService>();
+          
+            services.AddAutoMapper(m => m.AddProfile(typeof(RouteProfile)));
+            services.AddAutoMapper(m => m.AddProfile(typeof(HistoryProfile)));
 
-            Services.AddSignalR();
+          
+            services.AddScoped<IHistoryRepository, HistoryRepository>();
+            services.AddScoped<IRouteRepository, RouteRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
 
-            Services.AddSingleton<IConnectionMultiplexer>((_) =>
+          
+          //  services.AddDistributedMemoryCache();
+            services.AddScoped<IHistoryServices,HistoryServices>();
+
+         
+         //   services.AddScoped<IHistoryServices>(sp =>
+          //  {
+             //   var realService = sp.GetRequiredService<HistoryServices>();
+             //   var cache = sp.GetRequiredService<IDistributedCache>();
+             //   return new HistoryCacheService(realService, cache);
+           // });
+
+            services.AddScoped<IServicesManager, ServicesManager>();
+            services.AddScoped<ILocationServices, LocationServices>();
+            services.AddScoped<INotificationService, NotificationService>();
+
+            services.AddSignalR();
+
+            services.AddSingleton<IConnectionMultiplexer>((_) =>
             {
                 return ConnectionMultiplexer.Connect(configuration.GetConnectionString("RedisConnectionString"));
             });
-            Services.AddScoped<IServicesManager, ServicesManager>();
-           
-            Services.AddHttpContextAccessor();
-  
-            return Services;
-			}
-		}
-	}
+
+          
+            services.AddHttpContextAccessor();
+
+            return services;
+        }
+    }
+}
 

@@ -4,7 +4,7 @@
 	{
 		public int _statuescode { get; set; }
 		public string? _errormessage { get; set; }
-		public ErrorResponse(int statuescode, string errormessage = null)
+		public ErrorResponse(int statuescode, string errormessage = null!)
 		{
 			_statuescode = statuescode;
 			_errormessage = errormessage ?? Geterrormessageforresponsecode(_statuescode);

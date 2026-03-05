@@ -22,12 +22,12 @@ namespace TransGuideApi.Controllers
         [HttpGet("MyHistory")]
         public async Task<IActionResult> GetMyHistory()
         {
-            string userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
 
            if (string.IsNullOrEmpty(userId))
                return Unauthorized();
 
-            var history = await _servicesManager.HistoryRepository.GetHistoryAsync(userId);
+            var history = await _servicesManager.HistoryServices.GetHistoryAsync(userId);
 
             if (history == null || !history.Trips.Any())
                 return NotFound(new ApiExceptionResponse(404, "No trips found for this user"));
@@ -41,7 +41,7 @@ namespace TransGuideApi.Controllers
         {
             try
             {
-                var result = await _servicesManager.HistoryRepository.DeleteHistoryAsync(key);
+                var result = await _servicesManager.HistoryServices.DeleteHistoryAsync(key);
 
                 if (!result)
                     return NotFound(new ApiExceptionResponse(404, "History not found"));

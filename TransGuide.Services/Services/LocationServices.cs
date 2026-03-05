@@ -82,54 +82,51 @@ namespace TransGuide.Services
                 return dto;
             }).OrderBy(r => r.RouteLengthInKm).
             ToList();
-
-
             if (dtoList.Any())
             {
+                var userId = _httpContextAccessor.HttpContext?
+                               .User?
+                               .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?
+                               .Value;
 
-                var userId = _httpContextAccessor
-                    .HttpContext?
-                    .User?
-                    .FindFirst(ClaimTypes.NameIdentifier)?
-                    .Value;
+                if (!string.IsNullOrWhiteSpace(userId))
 
-
-                if (userId == null)
-                    return new Pagination<RouteDto>(pageIndex, pageSize, dtoList, dtoList.Count);
-
-
-                var history = await _servicesManager.HistoryRepository.GetHistoryAsync(userId);
-
-
-                var trip = new Trip
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    UserLocation = filter.UserLocation,
-                    StationName = filter.StationName,
-                    Latitude = filter.Latitude,
-                    Longitude = filter.Longitude,
-                    Date = DateOnly.FromDateTime(DateTime.UtcNow)
-                };
+                    
+                      //  if (_servicesManager == null)
+                        //    throw new Exception("ServicesManager is NULL");
+
+                     //   if (_servicesManager.HistoryServices == null)
+                       //     throw new Exception("HistoryServices is NULL");
+
+                        var history = await _servicesManager.HistoryServices
+                                        .GetHistoryAsync(userId)
+                                        ?? new HistoryDto { UserId = userId };
+                        
+                 
 
 
-                if (history != null)
-                {
-                    history.Trips.Add(trip);
-                    await _servicesManager.HistoryRepository.CreateorUpdateHistoryAsync(history);
-                }
-                else
-                {
-                    await _servicesManager.HistoryRepository.CreateorUpdateHistoryAsync(new History
+                    history.Trips ??= new List<TripDto>();
+
+                    var trip = new TripDto
                     {
+                        Id = Guid.NewGuid().ToString(),
+                        UserLocation = filter?.UserLocation,
+                        StationName = filter?.StationName,
+                        Latitude = filter?.Latitude ?? 0,
+                        Longitude = filter?.Longitude ?? 0,
+                        Date = DateOnly.FromDateTime(DateTime.UtcNow)
+                    };
 
-                        UserId = userId,
-                        Trips = new List<Trip> { trip }
-                    });
+                    history.Trips.Add(trip);
+
+                    await _servicesManager.HistoryServices
+                        .CreateorUpdateHistoryAsync(history);
                 }
             }
 
-
             return new Pagination<RouteDto>(pageIndex, pageSize, dtoList, dtoList.Count);
+
         }
         private double CalculateDistanceKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
         {

@@ -21,10 +21,10 @@ namespace TransGuideApi.Controllers
         [HttpGet("GetAllRoutes")]
         public async Task<IActionResult> GetRoutes(int pageIndex = 1, int pageSize = 10)
         {
-            var Routes = await _locationService.GetRoutesAsync(pageIndex, pageSize, null);
+            var Routes = await _locationService.GetRoutesAsync(pageIndex, pageSize, null!);
             try
             {
-                var routes = await _locationService.GetRoutesAsync(pageIndex, pageSize, null);
+                var routes = await _locationService.GetRoutesAsync(pageIndex, pageSize, null!);
 
                 if (routes == null || !routes.Data.Any())
                 {
