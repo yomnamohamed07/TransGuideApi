@@ -43,6 +43,15 @@ namespace TransGuide.Data
                 new RouteStatus { Id = (int)RouteStatusEnum.UnderMaintenance, Name = "Under Maintenance" },
                 new RouteStatus { Id = (int)RouteStatusEnum.Closed, Name = "Closed" }
             );
+
+            // Seed Ratings
+            modelBuilder.Entity<Rating>().HasData(
+               new Rating { Id = (int)RatingEnum.Execellent, Name = "Excellent" },
+               new Rating { Id = (int)RatingEnum.VeryGood, Name = "Very Good" },
+               new Rating { Id = (int)RatingEnum.Good, Name = "Good" },
+               new Rating { Id = (int)RatingEnum.Bad, Name = "Bad" },
+               new Rating { Id = (int)RatingEnum.VeryBad, Name = "Very Bad" }
+                   );
         }
 
         // DbSets

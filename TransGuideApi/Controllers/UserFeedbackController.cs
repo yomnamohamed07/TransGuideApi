@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
+using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.Services;
 using TransGuide.Services.DTOS;
+using TransGuide.Services.Services;
+using TransGuideApi.Errors;
 
 namespace TransGuideApi.Controllers
 {
@@ -9,23 +13,35 @@ namespace TransGuideApi.Controllers
     [Route("api/[controller]")]
     public class UserFeedbackController : ControllerBase
     {
-        private readonly TransGuideDbContext _context;
+        private readonly IFeedbackService feedbackService;
 
-        public UserFeedbackController(TransGuideDbContext context)
+        public UserFeedbackController(IFeedbackService feedbackService)
         {
-            _context = context;
+            this.feedbackService = feedbackService;
         }
 
+
+
         [HttpPost]
-        public async Task<IActionResult> Submit([FromBody] Feedback feedback)
+        public async Task<IActionResult> SubmitFeedback(FeedbackDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(new ApiExceptionResponse(400, "Invalid data"));
 
-            await _context.Feedbacks.AddAsync(feedback);
-            await _context.SaveChangesAsync();
+                var isSubmitted = await feedbackService.SubmitFeedbackAsync(dto);
 
-            return Ok(new { message = "تم إرسال الملاحظات بنجاح" });
+                if (!isSubmitted)
+                    return BadRequest(new ApiExceptionResponse(400, "Feedback could not be submitted"));
+
+                return Ok(new { Message = "Feedback submitted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500,
+                    new ApiExceptionResponse(500, "Something went wrong", ex.Message));
+            }
         }
     }
 }

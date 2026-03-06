@@ -13,6 +13,7 @@ public interface IGenericRepository<T> where T : class
 
 	IQueryable<T> GetNoTracking();
 
+    Task<bool> IsExist(int id );
 	Task SaveChangesAsync();
 }
 

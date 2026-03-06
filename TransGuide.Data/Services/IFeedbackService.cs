@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TransGuide.Data.Entities.ApplicationEntities;
-using TransGuide.Data.Repositories;
+using TransGuide.Data.MappingProfiles;
 
-namespace TransGuide.Data.Respositories
+namespace TransGuide.Data.Services
 {
-    public interface IFeedbackRepository :IGenericRepository<Feedback>
+    public interface IFeedbackService
     {
-      
+        Task<bool> SubmitFeedbackAsync(FeedbackDto dto);
     }
 }

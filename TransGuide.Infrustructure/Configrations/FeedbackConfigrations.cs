@@ -8,8 +8,8 @@ namespace TransGuide.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Feedback> builder)
         {
-            builder.Property(f => f.FullName).HasMaxLength(150);
-            builder.Property(f => f.Email).HasMaxLength(150);
+            builder.Property(f => f.FullName).HasMaxLength(150).IsRequired();
+            builder.Property(f => f.Email).HasMaxLength(150).IsRequired();
             builder.Property(f => f.PhoneNumber).HasMaxLength(20);
 
             builder.HasOne(f => f.Route)

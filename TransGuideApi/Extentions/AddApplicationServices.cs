@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using TransGuide.Data.Repositories;
 using TransGuide.Data.Services;
 using TransGuide.Services;
@@ -48,27 +45,20 @@ namespace TransGuideApi.Extentions
           
             services.AddAutoMapper(m => m.AddProfile(typeof(RouteProfile)));
             services.AddAutoMapper(m => m.AddProfile(typeof(HistoryProfile)));
+            services.AddAutoMapper(m => m.AddProfile(typeof(FeedbackProfile)));
 
           
             services.AddScoped<IHistoryRepository, HistoryRepository>();
             services.AddScoped<IRouteRepository, RouteRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
-
+            services.AddScoped<IFeedbackRepository, FeedbackRepository>();
           
-          //  services.AddDistributedMemoryCache();
+        
             services.AddScoped<IHistoryServices,HistoryServices>();
-
-         
-         //   services.AddScoped<IHistoryServices>(sp =>
-          //  {
-             //   var realService = sp.GetRequiredService<HistoryServices>();
-             //   var cache = sp.GetRequiredService<IDistributedCache>();
-             //   return new HistoryCacheService(realService, cache);
-           // });
-
             services.AddScoped<IServicesManager, ServicesManager>();
             services.AddScoped<ILocationServices, LocationServices>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IFeedbackService, FeedbackService>();
 
             services.AddSignalR();
 

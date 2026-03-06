@@ -55,4 +55,11 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 		await _context.SaveChangesAsync();
 	}
 
+    public async Task<bool> IsExist(int id)
+    {
+      var result =  await _context.Set<T>().FindAsync(id);
+        if (result!= null)
+            return true;
+        else return false;
+    }
 }
