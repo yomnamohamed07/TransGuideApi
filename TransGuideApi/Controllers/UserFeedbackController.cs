@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Data.MappingProfiles;
 using TransGuide.Data.Services;
-using TransGuide.Services.DTOS;
-using TransGuide.Services.Services;
 using TransGuideApi.Errors;
 
 namespace TransGuideApi.Controllers

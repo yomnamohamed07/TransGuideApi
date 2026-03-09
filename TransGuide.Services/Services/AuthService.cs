@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -8,7 +10,6 @@ using TransGuide.Data.Entities.Identity;
 using TransGuide.Data.MappingProfiles;
 using TransGuide.Data.Services;
 
-
 namespace TransGuide.Services.Services
 {
     public class AuthService : IAuthService
@@ -16,17 +17,21 @@ namespace TransGuide.Services.Services
         private readonly UserManager<UserProfile> _userManager;
         private readonly ResetCodeService _resetCodeService;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
         public AuthService(
             UserManager<UserProfile> userManager,
             ResetCodeService resetCodeService,
-            IMapper mapper)
+            IMapper mapper,
+            IConfiguration config)
         {
             _userManager = userManager;
             _resetCodeService = resetCodeService;
             _mapper = mapper;
+            _config = config;
         }
 
+        
         public async Task<(bool Succeeded, string Message)> RegisterAsync(RegisterRequest model)
         {
             var existingUser = await _userManager.FindByEmailAsync(model.Email);
@@ -42,32 +47,70 @@ namespace TransGuide.Services.Services
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        public async Task<(bool Succeeded, string Token, int UserId, string Email, string FullName)> LoginAsync(LoginRequest model)
+       
+        public async Task<LoginResponse> LoginAsync(LoginRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-                return (false, "", 0, "", ""); 
+                return new LoginResponse { Succeeded = false };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes("ThisIsASecureKeyForTransiGuide!2025");
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var token = GenerateJwtToken(user);
+
+            return new LoginResponse
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email!),
-                    new Claim("FullName", user.FullName ?? "")
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = "TransiGuide",
-                Audience = "TransiGuideUsers",
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Succeeded = true,
+                Token = token,
+                UserId = user.Id,
+                Email = user.Email!,
+                FullName = user.FullName ?? ""
             };
+        }
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
+       
+        public async Task<LoginResponse> GoogleLoginAsync(string idToken)
+        {
+            GoogleJsonWebSignature.Payload payload;
 
-            return (true, tokenString, user.Id, user.Email!, user.FullName ?? ""); 
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(idToken,
+                    new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { _config["Google:ClientId"] }
+                    });
+            }
+            catch
+            {
+                return new LoginResponse { Succeeded = false };
+            }
+
+            var user = await _userManager.FindByEmailAsync(payload.Email);
+
+            if (user == null)
+            {
+                user = new UserProfile
+                {
+                    Email = payload.Email,
+                    UserName = payload.Email,
+                    FullName = payload.Name,
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                    return new LoginResponse { Succeeded = false };
+            }
+
+            var token = GenerateJwtToken(user);
+
+            return new LoginResponse
+            {
+                Succeeded = true,
+                Token = token,
+                UserId = user.Id,
+                Email = user.Email!,
+                FullName = user.FullName ?? ""
+            };
         }
 
         public async Task<(bool Succeeded, string Message)> UpdateUserDataAsync(string userId, UpdateUserDataRequest model)
@@ -83,15 +126,13 @@ namespace TransGuide.Services.Services
             if (!string.IsNullOrEmpty(model.Address))
                 user.Address = model.Address;
 
-           // user.CurrentLatitude = model.CurrentLatitude;
-           // user.CurrentLongitude = model.CurrentLongitude;
-
             var result = await _userManager.UpdateAsync(user);
             return result.Succeeded
                 ? (true, "User data has been successfully updated.")
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
+   
         public async Task<(bool Succeeded, string Message)> UpdatePasswordAsync(string userId, UpdatePasswordRequest model)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -127,6 +168,7 @@ namespace TransGuide.Services.Services
             return Task.FromResult(_resetCodeService.IsValid(email, code));
         }
 
+        
         public async Task<(bool Succeeded, string Message)> ResetPasswordAsync(ResetPasswordRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
@@ -145,5 +187,32 @@ namespace TransGuide.Services.Services
                 ? (true, "Password has been reset successfully.")
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
+
+        
+        private string GenerateJwtToken(UserProfile user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_config["JWT:Key"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email!),
+                    new Claim("FullName", user.FullName ?? "")
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_config["JWT:ExpiresMinutes"])),
+                Issuer = _config["JWT:Issuer"],
+                Audience = _config["JWT:Audience"],
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
     }
+
+
 }
