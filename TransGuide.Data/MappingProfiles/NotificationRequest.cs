@@ -20,7 +20,7 @@ namespace TransGuide.Data.MappingProfiles
 
         [Required]
         [MaxLength(500)]
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
 
         [MaxLength(50)]
         public string NotificationType { get; set; } = "System";

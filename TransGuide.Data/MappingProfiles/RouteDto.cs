@@ -1,14 +1,16 @@
-﻿
-
-namespace TransGuide.Data.MaPppingProfiles
+﻿namespace TransGuide.Data.MaPppingProfiles
 {
     public class RouteDto
     {
-        public string Name { get; set; }
-        public string StartPoint { get; set; }
-        public string EndPoint { get; set; }
+        public string Name { get; set; } 
+        public string StartPoint { get; set; } 
+        public string EndPoint { get; set; } 
         public string Region { get; set; }
         public List<string> Stations { get; set; } = new List<string>();
+
+        public string ClosestStationName { get; set; } = string.Empty;
+        public double DistanceToClosestStationKm { get; set; }
+
         public int AverageTimeInMinutes { get; set; }
         public decimal TicketPrice { get; set; }
         public int RouteStatusId { get; set; }

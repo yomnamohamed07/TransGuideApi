@@ -8,6 +8,9 @@ namespace TransGuide.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<UserProfile> builder)
         {
+            builder.HasKey(ts => ts.Id);
+            builder.Property(ts => ts.UserName).IsRequired().HasMaxLength(100);
+
             builder.Property(u => u.FullName)
                    .HasMaxLength(150);
 

@@ -1,18 +1,14 @@
-﻿
-
-namespace TransGuide.Data.MaPppingProfiles
+﻿public class FilterDto
 {
-    public class FilterDto
-    {
-        public string UserLocation { get; set; }
+    public string UserLocation { get; set; } = string.Empty;
+    public decimal UserLatitude { get; set; }
+    public decimal UserLongitude { get; set; }
 
-        public string StationName { get; set; }
-        public decimal Latitude { get; set; }
-        public decimal Longitude { get; set; }
+    public string Destination { get; set; } = string.Empty;
+    public decimal DestinationLatitude { get; set; }
+    public decimal DestinationLongitude { get; set; }
 
-       // public decimal  MaxDistanceKm { get; set; }
-
-
-
-    }
+  //  public string StationName { get; set; } // optional search
 }
+
+
