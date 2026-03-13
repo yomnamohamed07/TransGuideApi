@@ -35,6 +35,8 @@ namespace TransGuide.Data.MaPppingProfiles
         public string ClosestStationName { get; set; }  
         public double DistanceToClosestStationKm { get; set; }
 
+    
+
         public List<string> TransferStations { get; set; } = new();
         public List<RouteDetailDto> RouteDetails { get; set; } = new(); 
     }
