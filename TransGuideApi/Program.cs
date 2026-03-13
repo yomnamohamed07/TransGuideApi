@@ -5,6 +5,7 @@ using TransGuide.Infrustructure.data;
 using TransGuideApi.MiddleWare;
 using TransGuideApi.Extentions;
 using System;
+using AspNetCoreRateLimit;
 
 namespace TransGuideApi
 {
@@ -41,7 +42,11 @@ namespace TransGuideApi
 
             builder.Services.AddApplicationService(builder.Configuration);
             builder.Services.AddIdentityService(builder.Configuration);
-       
+            builder.Services.AddMemoryCache();
+            builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+            builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+            builder.Services.AddInMemoryRateLimiting();
+            builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
             var app = builder.Build();
 
