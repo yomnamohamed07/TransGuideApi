@@ -43,5 +43,32 @@ public class RouteRepository : GenericRepository<Route>, IRouteRepository
         );
 
     }
+    public async Task<Pagination<Route>> GetAllRoutesAsync(int pageindex,int pagesize)
+                                                           
+    {
+        var Query = _dbset.AsNoTracking().AsQueryable();
+      
+        var totalItems = await Query.CountAsync();
+        var items = await Query
+                             .OrderBy(r => r.Name)
+                             .Include(r => r.RouteStations)
+                             .ThenInclude(rs => rs.Station)
+                             .Skip((pageindex - 1) * pagesize)
+                             .Take(pagesize)
+                             .ToListAsync();
+        return new Pagination<Route>
+        (
+            pageindex,
+            pagesize,
+           items,
+           totalItems
+        );
+
+    }
+    public override async Task<IEnumerable<Route>> GetAllAsync() =>
+          await _context.Set<Route>()
+              .Include(r => r.RouteStations)
+                  .ThenInclude(rs => rs.Station)
+              .ToListAsync();
 
 }

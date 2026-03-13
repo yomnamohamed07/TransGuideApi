@@ -6,6 +6,7 @@ namespace TransGuide.Data.Repositories;
 
 public interface IRouteRepository : IGenericRepository<Route> 
 {
+    Task<Pagination<Route>> GetAllRoutesAsync(int pageIndex, int pageSize);
     Task <Pagination<Route>> GetRoutesPaginatedAsync(
       int pageIndex,
       int pageSize,

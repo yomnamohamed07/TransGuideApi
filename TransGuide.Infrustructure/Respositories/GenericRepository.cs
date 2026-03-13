@@ -13,7 +13,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _context = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync() =>
+    public virtual async Task<IEnumerable<T>> GetAllAsync() =>
         await _context.Set<T>().ToListAsync();
 
     public async Task<T?> GetByIdAsync(int id) =>

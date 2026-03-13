@@ -6,7 +6,8 @@ namespace TransGuide.Data.Services
 {
 	public interface ILocationServices 
 	{
-        public  Task<Pagination<RouteDto>> GetRoutesAsync(int pageIndex, int pageSize, FilterDto searchDt);
+        public  Task<Pagination<RouteDto>> GetRoutesAsync(int pageIndex, int pageSize, FilterDto? searchDt);
+        public Task<Pagination<RouteDto>> GetAllRoutesPaginatedAsync(int pageIndex, int pageSize);
 
     }
 }

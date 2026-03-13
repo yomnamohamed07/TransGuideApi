@@ -22,7 +22,7 @@ namespace TransGuideApi.Controllers
         {
             try
             {
-                var routes = await _locationService.GetRoutesAsync(pageIndex, pageSize, null!);
+                var routes = await _locationService.GetAllRoutesPaginatedAsync(pageIndex, pageSize);
                 if (!routes.Data.Any())
                     return NotFound(new ApiExceptionResponse(404, "No routes found"));
 

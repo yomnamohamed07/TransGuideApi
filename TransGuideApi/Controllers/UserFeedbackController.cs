@@ -13,7 +13,7 @@ namespace TransGuideApi.Controllers
         private readonly IFeedbackService feedbackService;
 
         public UserFeedbackController(IFeedbackService feedbackService)
-        {
+        { 
             this.feedbackService = feedbackService;
         }
 
