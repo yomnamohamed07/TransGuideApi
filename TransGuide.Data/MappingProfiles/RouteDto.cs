@@ -44,8 +44,13 @@ namespace TransGuide.Data.MaPppingProfiles
    
     public class RouteDetailDto
     {
-        public string RouteName { get; set; } 
+        public  int Id { get; set; }
+        public string RouteName { get; set; }
+        public int TicketPrice { get; set; }
+        public int AverageTimeInMinutes { get; set; }
         public List<string> Stations { get; set; } = new();  
+
+
     }
 }
 
