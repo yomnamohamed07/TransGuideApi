@@ -10,19 +10,21 @@ using TransGuide.Services.Mapper;
 
 namespace TransGuideApi.Extentions
 {
-    public  static class AddIdentityServices
+    public static class AddIdentityServices
     {
-        public static IServiceCollection AddIdentityService(this IServiceCollection Services , IConfiguration configuration)
+        public static IServiceCollection AddIdentityService(this IServiceCollection Services, IConfiguration configuration)
         {
-
-            Services.AddApplicationService(configuration);
-            // Identity configuration
+            // AutoMapper
             Services.AddAutoMapper(typeof(UserProfileMapping));
+
+            // Auth Service
             Services.AddScoped<IAuthService, AuthService>();
 
+            // Identity
             Services.AddIdentity<UserProfile, IdentityRole<int>>(options =>
             {
                 options.User.RequireUniqueEmail = true;
+
                 options.Password.RequiredLength = 6;
                 options.Password.RequireDigit = true;
                 options.Password.RequireNonAlphanumeric = false;
@@ -31,8 +33,8 @@ namespace TransGuideApi.Extentions
             .AddEntityFrameworkStores<TransGuideDbContext>()
             .AddDefaultTokenProviders();
 
-
-         Services.AddAuthentication(options =>
+            // JWT Authentication
+            Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -45,17 +47,19 @@ namespace TransGuideApi.Extentions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = "TransiGuide",
-                    ValidAudience = "TransiGuideUsers",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ThisIsASecureKeyForTransiGuide!2025"))
+
+                    ValidIssuer = configuration["JWT:Issuer"],
+                    ValidAudience = configuration["JWT:Audience"],
+
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["JWT:Key"]))
                 };
             });
 
-
-           Services.AddSingleton<ResetCodeService>();
+            // Reset Password Service
+            Services.AddSingleton<ResetCodeService>();
 
             return Services;
         }
-        
     }
 }

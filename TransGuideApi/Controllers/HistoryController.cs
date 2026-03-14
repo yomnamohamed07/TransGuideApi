@@ -32,7 +32,7 @@ namespace TransGuideApi.Controllers
             if (history == null || !history.Trips.Any())
                 return NotFound(new ApiExceptionResponse(404, "No trips found for this user"));
 
-            return Ok(history.Trips); 
+            return Ok(history); 
         }
 
         [Authorize]

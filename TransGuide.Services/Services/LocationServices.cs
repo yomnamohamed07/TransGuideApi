@@ -1,15 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using FuzzySharp;
 using TransGuide.Data.Entities.Identity;
+using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Data.Helper;
 using TransGuide.Data.Repositories;
 using TransGuide.Data.Services;
-using FuzzySharp;
-using System.Linq;
-using TransGuide.Data.Entities.ApplicationEntities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using TransGuide.Data.MappingProfiles;
 using TransGuide.Data.MaPppingProfiles;
 
 namespace TransGuide.Services
@@ -24,7 +23,6 @@ namespace TransGuide.Services
 
         private List<Station> _stationIndex = new();
         private List<Route> _allRoutes = new();
-
         private Dictionary<int, List<(Station NextStation, Route Route, double Distance)>> _transferGraph = new();
 
         public LocationServices(
@@ -41,13 +39,11 @@ namespace TransGuide.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        // =================================================
         public async Task<Pagination<RouteDto>> GetAllRoutesPaginatedAsync(int pageIndex, int pageSize)
         {
             await LoadRoutesAndBuildGraphAsync();
 
-            var allTrips = new List<RouteDto>();
-            foreach (var route in _allRoutes)
+            var allTrips = _allRoutes.Select(route =>
             {
                 var dto = _mapper.Map<RouteDto>(route);
                 var stations = route.RouteStations?.OrderBy(rs => rs.Order)
@@ -63,41 +59,29 @@ namespace TransGuide.Services
                     }
                 };
                 dto.TransferStations = new List<string>();
-                allTrips.Add(dto);
-            }
+                return dto;
+            }).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
 
-            var pagedList = allTrips.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
-            return new Pagination<RouteDto>(pageIndex, pageSize, pagedList, allTrips.Count);
+            return new Pagination<RouteDto>(pageIndex, pageSize, allTrips, _allRoutes.Count);
         }
 
-        // =================================================
         public async Task<Pagination<RouteDto>> GetRoutesAsync(int pageIndex, int pageSize, FilterDto filter)
         {
             await LoadRoutesAndBuildGraphAsync();
 
-           
             Station startStation = null;
             if (!string.IsNullOrWhiteSpace(filter.UserLocation))
-            {
                 startStation = _stationIndex.FirstOrDefault(s => Normalize(s.Name) == Normalize(filter.UserLocation));
-            }
-
 
             if (startStation == null && filter.UserLatitude != 0 && filter.UserLongitude != 0)
-            {
                 startStation = _stationIndex
                     .OrderBy(s => CalculateDistanceKm(filter.UserLatitude, filter.UserLongitude, s.Latitude, s.Longitude))
                     .FirstOrDefault();
-            }
 
-            
             Station endStation = null;
             if (!string.IsNullOrWhiteSpace(filter.Destination))
-            {
                 endStation = _stationIndex.FirstOrDefault(s => Normalize(s.Name) == Normalize(filter.Destination));
-            }
 
-            // لو مش موجودة بالاسم، استخدم Fuzzy Matching
             if (endStation == null && !string.IsNullOrWhiteSpace(filter.Destination))
             {
                 var normalizedDestination = Normalize(filter.Destination);
@@ -110,10 +94,53 @@ namespace TransGuide.Services
                 return new Pagination<RouteDto>(pageIndex, pageSize, new List<RouteDto>(), 0);
 
             var trips = FindTripsUsingTransferGraph(startStation, endStation, maxTransfers: 3, filter, pageIndex, pageSize).ToList();
+
+            await SaveTripHistoryAsync(filter);
+
             return new Pagination<RouteDto>(pageIndex, pageSize, trips, trips.Count);
         }
 
-        // =================================================
+        private async Task SaveTripHistoryAsync(FilterDto filter)
+        {
+            if (filter == null || string.IsNullOrWhiteSpace(filter.UserLocation) || string.IsNullOrWhiteSpace(filter.Destination))
+                return;
+
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+                return;
+
+            var history = await _servicesManager.HistoryServices.GetHistoryAsync(userId)
+                          ?? new HistoryDto { UserId = userId };
+
+            history.Trips ??= new List<TripDto>();
+
+            bool isDuplicate = history.Trips.Any(t =>
+                t.UserLocation == filter.UserLocation &&
+                t.Destination == filter.Destination &&
+                t.UserLatitude == filter.UserLatitude &&
+                t.UserLongitude == filter.UserLongitude
+            );
+
+            if (isDuplicate)
+                return;
+
+            var trip = new TripDto
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserLocation = filter.UserLocation,
+                UserLatitude = filter.UserLatitude,
+                UserLongitude = filter.UserLongitude,
+                Destination = filter.Destination,
+                DestinationLatitude = filter.DestinationLatitude,
+                DestinationLongitude = filter.DestinationLongitude,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            history.Trips.Insert(0, trip);
+
+            await _servicesManager.HistoryServices.CreateorUpdateHistoryAsync(history);
+        }
+
         private IEnumerable<RouteDto> FindTripsUsingTransferGraph(
             Station start, Station end, int maxTransfers, FilterDto filter, int pageIndex, int pageSize)
         {
@@ -194,7 +221,6 @@ namespace TransGuide.Services
             }
         }
 
-        // =================================================
         private async Task LoadRoutesAndBuildGraphAsync()
         {
             if (_allRoutes.Any()) return;
@@ -217,7 +243,6 @@ namespace TransGuide.Services
                     for (int j = 0; j < stations.Count; j++)
                     {
                         if (i == j) continue;
-
                         double dist = CalculateDistanceKm(stations[i].Latitude, stations[i].Longitude,
                                                          stations[j].Latitude, stations[j].Longitude);
 
@@ -230,6 +255,7 @@ namespace TransGuide.Services
         private void BuildStationIndex(IEnumerable<Route> routes)
         {
             if (_stationIndex.Any()) return;
+
             _stationIndex = routes
                 .SelectMany(r => r.RouteStations)
                 .Select(rs => rs.Station)
@@ -250,13 +276,15 @@ namespace TransGuide.Services
         private double CalculateDistanceKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
         {
             var R = 6371;
-            var dLat = (double)(lat2 - lat1) * System.Math.PI / 180.0;
-            var dLon = (double)(lon2 - lon1) * System.Math.PI / 180.0;
-            var a = System.Math.Sin(dLat / 2) * System.Math.Sin(dLat / 2) +
-                    System.Math.Cos((double)lat1 * System.Math.PI / 180.0) *
-                    System.Math.Cos((double)lat2 * System.Math.PI / 180.0) *
-                    System.Math.Sin(dLon / 2) * System.Math.Sin(dLon / 2);
-            var c = 2 * System.Math.Atan2(System.Math.Sqrt(a), System.Math.Sqrt(1 - a));
+            var dLat = (double)(lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (double)(lon2 - lon1) * Math.PI / 180.0;
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos((double)lat1 * Math.PI / 180.0) *
+                    Math.Cos((double)lat2 * Math.PI / 180.0) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             return R * c;
         }
 
