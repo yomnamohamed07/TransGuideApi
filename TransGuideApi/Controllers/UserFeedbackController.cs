@@ -8,18 +8,18 @@ namespace TransGuideApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserFeedbackController : ControllerBase
+    public class UserFeedbacksController : ControllerBase
     {
         private readonly IFeedbackService feedbackService;
 
-        public UserFeedbackController(IFeedbackService feedbackService)
+        public UserFeedbacksController(IFeedbackService feedbackService)
         { 
             this.feedbackService = feedbackService;
         }
 
 
 
-        [HttpPost]
+        [HttpPost("SubmitFeedack")]
         public async Task<IActionResult> SubmitFeedback(FeedbackDto dto)
         {
             try
@@ -39,6 +39,27 @@ namespace TransGuideApi.Controllers
                 return StatusCode(500,
                     new ApiExceptionResponse(500, "Something went wrong", ex.Message));
             }
+        }
+
+
+        [HttpGet("GetFeedbacksCount")]
+        public async Task<IActionResult> CountFeedbacks()
+        {
+            int count = await feedbackService.CountFeedbacks();
+            if (count == 0)
+                return NotFound(new ApiExceptionResponse(404, "Not Feedacks Found"));
+            else
+                return Ok(new { Count = count });
+        }
+
+        [HttpGet("GetAllFeedbacks")]
+        public async Task<IActionResult> GetAllFeedacks()
+        {
+            var feedbacks = await feedbackService.GetAllFeedBacks();
+            if (feedbacks == null || !feedbacks.Any())
+                return NotFound(new ApiExceptionResponse(404, "Not Feedbacks Found"));
+            else
+                return Ok(feedbacks);
         }
     }
 }

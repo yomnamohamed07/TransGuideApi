@@ -11,5 +11,8 @@ namespace TransGuide.Data.Services
     public interface IFeedbackService
     {
         Task<bool> SubmitFeedbackAsync(FeedbackDto dto);
+
+        public Task<IEnumerable<FeedbackViewDto>> GetAllFeedBacks();
+        Task<int> CountFeedbacks();
     }
 }

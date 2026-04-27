@@ -38,10 +38,19 @@ namespace TransGuide.Infrastructure.Configurations
 				   .HasForeignKey(r => r.RouteStatusId)
 				   .OnDelete(DeleteBehavior.Restrict);
 
-			//builder.HasMany(r => r.Stations)
-			//	.WithMany(s => s.Routes);
+            builder.HasOne(r => r.ParentRoute)
+                   .WithMany(r => r.SubRoutes)
+                   .HasForeignKey(r => r.ParentRouteId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-			builder.HasMany(r => r.RouteStations)
+            builder.HasOne(r => r.Type)
+                   .WithMany()
+                   .HasForeignKey(r => r.RouteTypeId)
+                   .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasMany(r => r.Stations)
+            //	.WithMany(s => s.Routes);
+
+            builder.HasMany(r => r.RouteStations)
 			 .WithOne(rs => rs.Route)
 			 .HasForeignKey(rs => rs.RouteId);
 

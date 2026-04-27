@@ -46,6 +46,7 @@ namespace TransGuideApi.Extentions
             services.AddAutoMapper(m => m.AddProfile(typeof(RouteProfile)));
             services.AddAutoMapper(m => m.AddProfile(typeof(HistoryProfile)));
             services.AddAutoMapper(m => m.AddProfile(typeof(FeedbackProfile)));
+            services.AddAutoMapper(m => m.AddProfile(typeof(StationProfile)));
 
           
             services.AddScoped<IHistoryRepository, HistoryRepository>();
@@ -59,15 +60,36 @@ namespace TransGuideApi.Extentions
             services.AddScoped<ILocationServices, LocationServices>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IFeedbackService, FeedbackService>();
+            services.AddScoped<IGeoLocationService, GeoLocationService>();
+            services.AddScoped<IRouteServices, RouteServices>();
+            services.AddScoped<IStationService, StationService>();
+            
 
             services.AddSignalR();
 
-            services.AddSingleton<IConnectionMultiplexer>((_) =>
+            // services.AddSingleton<IConnectionMultiplexer>((_) =>
+            // {
+            //return ConnectionMultiplexer.Connect(configuration.GetConnectionString("RedisConnectionString"));
+            // });
+
+
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
-                return ConnectionMultiplexer.Connect(configuration.GetConnectionString("RedisConnectionString"));
+                var config = sp.GetRequiredService<IConfiguration>();
+                var connectionString = config.GetConnectionString("RedisConnectionString");
+
+                var options = ConfigurationOptions.Parse(connectionString);
+
+                options.AbortOnConnectFail = false;
+               // options.Ssl = true;
+                options.ConnectTimeout = 1000000;
+
+                return ConnectionMultiplexer.Connect(options);
             });
 
-          
+            // Redis Connection
+
+
             services.AddHttpContextAccessor();
 
             return services;

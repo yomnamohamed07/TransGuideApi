@@ -20,5 +20,7 @@ namespace TransGuide.Data.Services
         Task<bool> VerifyResetCodeAsync(string email, string code);
 
         Task<(bool Succeeded, string Message)> ResetPasswordAsync(ResetPasswordRequest model);
+
+        public  Task<int> GetUsersCount();
     }
 }

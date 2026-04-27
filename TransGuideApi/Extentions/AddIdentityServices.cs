@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TransGuide.Data.Entities.Identity;
 using TransGuide.Data;
+using TransGuide.Data.Entities.Identity;
 using TransGuide.Services.Services;
-using TransGuide.Data.Services;
 using TransGuide.Services.Mapper;
+using TransGuide.Data.Services;
+using System.Security.Claims;
 
 namespace TransGuideApi.Extentions
 {
@@ -14,13 +15,13 @@ namespace TransGuideApi.Extentions
     {
         public static IServiceCollection AddIdentityService(this IServiceCollection Services, IConfiguration configuration)
         {
-            // AutoMapper
             Services.AddAutoMapper(typeof(UserProfileMapping));
 
-            // Auth Service
             Services.AddScoped<IAuthService, AuthService>();
+            Services.AddScoped<IAuthorizationService, AuthorizationService>();
+            Services.AddSingleton<ResetCodeService>();
 
-            // Identity
+           
             Services.AddIdentity<UserProfile, IdentityRole<int>>(options =>
             {
                 options.User.RequireUniqueEmail = true;
@@ -33,7 +34,7 @@ namespace TransGuideApi.Extentions
             .AddEntityFrameworkStores<TransGuideDbContext>()
             .AddDefaultTokenProviders();
 
-            // JWT Authentication
+            
             Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -50,14 +51,12 @@ namespace TransGuideApi.Extentions
 
                     ValidIssuer = configuration["JWT:Issuer"],
                     ValidAudience = configuration["JWT:Audience"],
-
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["JWT:Key"]))
+                        Encoding.UTF8.GetBytes(configuration["JWT:Key"])),
+
+                    RoleClaimType = ClaimTypes.Role
                 };
             });
-
-            // Reset Password Service
-            Services.AddSingleton<ResetCodeService>();
 
             return Services;
         }

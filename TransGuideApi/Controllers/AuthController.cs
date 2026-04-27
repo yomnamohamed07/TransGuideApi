@@ -120,5 +120,13 @@ namespace TransGuideApi.Controllers
             var (succeeded, message) = await _authService.ResetPasswordAsync(model);
             return succeeded ? Ok(new { message }) : BadRequest(new { message });
         }
+
+        [HttpGet("UsersCount")]
+        public async Task<IActionResult> GetUsersCount()
+        {
+            var count = await _authService.GetUsersCount();
+            return Ok(new { Count = count });
+       }
+
     }
 }

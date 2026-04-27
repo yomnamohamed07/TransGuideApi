@@ -1,5 +1,6 @@
 ﻿
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Data.Entities.Identity;
@@ -53,6 +54,25 @@ namespace TransGuide.Services.Services
 
             var result = await _feedbackRepo.AddAsync(feedback);
             return result != null;
+
+            
+        }
+        public async Task<IEnumerable<FeedbackViewDto>> GetAllFeedBacks()
+        {
+            var result = await _feedbackRepo.GetAllAsync();
+
+            if (result == null || !result.Any())
+                return Enumerable.Empty<FeedbackViewDto>();
+
+            return result.Select(x => new FeedbackViewDto
+            {
+                Email = x.Email,
+                Message = x.Message
+            });
+        }
+        public async Task<int> CountFeedbacks()
+        {
+            return await _feedbackRepo.CountAsync();
         }
     }
 

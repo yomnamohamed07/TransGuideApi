@@ -11,6 +11,7 @@ namespace TransGuide.Data.Respositories
         Task<History?> CreateorUpdateHistoryAsync(History? History, TimeSpan? TimeToLive = null);
 
         Task<bool> DeleteHistoryAsync(string key);
+        public Task<long> GetTotalTripsCountAsync();
 
         Task<bool> DeleteTripFromHistoryAsync(string userId, string tripId);
     }

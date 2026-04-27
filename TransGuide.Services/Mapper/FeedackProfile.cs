@@ -10,7 +10,7 @@ namespace TransGuide.Services.Mapper
     {
         public FeedbackProfile()
         {
-            CreateMap<FeedbackDto, Feedback>();
+            CreateMap<FeedbackDto, Feedback>().ReverseMap();
         }
     }
 }

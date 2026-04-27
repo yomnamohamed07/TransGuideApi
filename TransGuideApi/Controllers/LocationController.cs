@@ -10,32 +10,40 @@ namespace TransGuideApi.Controllers
     public class LocationController : ControllerBase
     {
         private readonly ILocationServices _locationService;
+        private readonly IGeoLocationService geoLocationService;
 
-        public LocationController(ILocationServices locationServices)
+        public LocationController(ILocationServices locationServices, IGeoLocationService geoLocationService)
         {
             _locationService = locationServices;
+            this.geoLocationService = geoLocationService;
         }
 
-      
-        [HttpGet("GetAllRoutes")]
-        public async Task<IActionResult> GetRoutes(int pageIndex = 1, int pageSize = 10)
+
+        // [HttpGet("GetAllRoutes")]
+        //    public async Task<IActionResult> GetRoutes(int pageIndex = 1, int pageSize = 10)
+        //   {
+        //   try
+        //     {
+        //    var routes = await _locationService.GetAllRoutesPaginatedAsync(pageIndex, pageSize);
+        //    if (!routes.Data.Any())
+        //    return NotFound(new ApiExceptionResponse(404, "No routes found"));
+
+        //  return Ok(routes);
+        // }//
+        // catch (Exception ex)
+        // {
+        //   return StatusCode(500, new ApiExceptionResponse(500, "Something went wrong", ex.Message));
+        //  }
+        //   }
+        [HttpGet("test-geo")]
+        public async Task<IActionResult> TestGeo(double lat, double lng)
         {
-            try
-            {
-                var routes = await _locationService.GetAllRoutesPaginatedAsync(pageIndex, pageSize);
-                if (!routes.Data.Any())
-                    return NotFound(new ApiExceptionResponse(404, "No routes found"));
-
-                return Ok(routes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiExceptionResponse(500, "Something went wrong", ex.Message));
-            }
+            var result = await geoLocationService.GetNearestStationAsync((decimal)lat, (decimal)lng);
+            if (result == null)
+                return BadRequest("No Station Found");
+            return Ok(result);
         }
-
-        
-        [HttpGet("SearchRoutes")]
+        [HttpPost("SearchRoutes")]
         public async Task<IActionResult> SearchRoutes([FromBody] FilterDto filter, int pageIndex = 1, int pageSize = 10)
         {
             try

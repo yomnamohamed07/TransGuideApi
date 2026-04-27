@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using TransGuide.Data.Entities.Identity;
 using TransGuide.Data.MappingProfiles;
 using TransGuide.Data.Respositories;
@@ -21,13 +20,11 @@ public class HistoryServices : IHistoryServices
         var history = await _repository.GetHistoryAsync(userId);
 
         if (history == null)
-        {
             return new HistoryDto
             {
                 UserId = userId,
                 Trips = new List<TripDto>()
             };
-        }
 
         var dto = _mapper.Map<HistoryDto>(history);
         dto.Trips ??= new List<TripDto>();
@@ -43,6 +40,7 @@ public class HistoryServices : IHistoryServices
         dto.Trips ??= new List<TripDto>();
 
         var entity = _mapper.Map<History>(dto);
+
         var result = await _repository.CreateorUpdateHistoryAsync(entity);
 
         if (result == null)
@@ -51,12 +49,12 @@ public class HistoryServices : IHistoryServices
         return await GetHistoryAsync(dto.UserId);
     }
 
-    public async Task<bool> DeleteHistoryAsync(string userId)
-        => await _repository.DeleteHistoryAsync(userId);
+    public Task<bool> DeleteHistoryAsync(string userId)
+        => _repository.DeleteHistoryAsync(userId);
 
-    public async Task<bool> DeleteTripFromHistoryAsync(string userId, string tripId)
-    {
-        return await _repository.DeleteTripFromHistoryAsync(userId, tripId);
-    }
+    public Task<bool> DeleteTripFromHistoryAsync(string userId, string tripId)
+        => _repository.DeleteTripFromHistoryAsync(userId, tripId);
 
+    public Task<long> GetTotalTripsAsync()
+    => _repository.GetTotalTripsCountAsync();
 }

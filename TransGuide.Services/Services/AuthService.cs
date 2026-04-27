@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -31,30 +32,32 @@ namespace TransGuide.Services.Services
             _config = config;
         }
 
-        
+        // ================= REGISTER =================
         public async Task<(bool Succeeded, string Message)> RegisterAsync(RegisterRequest model)
         {
             var existingUser = await _userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
-                return (false, "Email is already in use.");
+                return (false, "Email already exists");
 
             var user = _mapper.Map<UserProfile>(model);
             user.UserName = model.Email;
 
             var result = await _userManager.CreateAsync(user, model.Password);
+
             return result.Succeeded
-                ? (true, "User registered successfully.")
+                ? (true, "Registered successfully")
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-       
+        // ================= LOGIN =================
         public async Task<LoginResponse> LoginAsync(LoginRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
                 return new LoginResponse { Succeeded = false };
 
-            var token = GenerateJwtToken(user);
+            var token = await GenerateJwtToken(user);
 
             return new LoginResponse
             {
@@ -65,8 +68,7 @@ namespace TransGuide.Services.Services
                 FullName = user.FullName ?? ""
             };
         }
-
-       
+        // ================= GOOGLE LOGIN =================
         public async Task<LoginResponse> GoogleLoginAsync(string idToken)
         {
             GoogleJsonWebSignature.Payload payload;
@@ -97,11 +99,12 @@ namespace TransGuide.Services.Services
                 };
 
                 var result = await _userManager.CreateAsync(user);
+
                 if (!result.Succeeded)
                     return new LoginResponse { Succeeded = false };
             }
 
-            var token = GenerateJwtToken(user);
+            var token = await GenerateJwtToken(user);
 
             return new LoginResponse
             {
@@ -113,34 +116,41 @@ namespace TransGuide.Services.Services
             };
         }
 
+        // ================= UPDATE USER DATA =================
         public async Task<(bool Succeeded, string Message)> UpdateUserDataAsync(string userId, UpdateUserDataRequest model)
         {
             var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
                 return (false, "User not found.");
 
             if (!string.IsNullOrEmpty(model.FullName))
                 user.FullName = model.FullName;
+
             if (!string.IsNullOrEmpty(model.Country))
                 user.Country = model.Country;
+
             if (!string.IsNullOrEmpty(model.Address))
                 user.Address = model.Address;
 
             var result = await _userManager.UpdateAsync(user);
+
             return result.Succeeded
                 ? (true, "User data has been successfully updated.")
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-   
+        // ================= UPDATE PASSWORD =================
         public async Task<(bool Succeeded, string Message)> UpdatePasswordAsync(string userId, UpdatePasswordRequest model)
         {
             var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
                 return (false, "User not found.");
 
-            var isPasswordValid = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
-            if (!isPasswordValid)
+            var isValid = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+
+            if (!isValid)
                 return (false, "Current password is incorrect.");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -151,16 +161,18 @@ namespace TransGuide.Services.Services
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
+        // ================= FORGOT PASSWORD =================
         public async Task<(bool Succeeded, string Message)> ForgotPasswordAsync(ForgotPasswordRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
+
             if (user == null)
                 return (false, "User not found.");
 
             var code = _resetCodeService.GenerateCode(model.Email);
             Console.WriteLine($"[DEV] Reset code for {model.Email}: {code}");
 
-            return (true, "Password reset code sent to your email.");
+            return (true, "Password reset code sent.");
         }
 
         public Task<bool> VerifyResetCodeAsync(string email, string code)
@@ -168,15 +180,16 @@ namespace TransGuide.Services.Services
             return Task.FromResult(_resetCodeService.IsValid(email, code));
         }
 
-        
+        // ================= RESET PASSWORD =================
         public async Task<(bool Succeeded, string Message)> ResetPasswordAsync(ResetPasswordRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
+
             if (user == null)
                 return (false, "User not found.");
 
             if (!_resetCodeService.IsValid(model.Email, model.Code))
-                return (false, "Invalid or expired reset code.");
+                return (false, "Invalid or expired code.");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
@@ -188,31 +201,42 @@ namespace TransGuide.Services.Services
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        
-        private string GenerateJwtToken(UserProfile user)
+        // ================= JWT GENERATION =================
+        private async Task<string> GenerateJwtToken(UserProfile user)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_config["JWT:Key"]);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email!),
-                    new Claim("FullName", user.FullName ?? "")
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_config["JWT:ExpiresMinutes"])),
-                Issuer = _config["JWT:Issuer"],
-                Audience = _config["JWT:Audience"],
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim("FullName", user.FullName ?? "")
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+        
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var token = new JwtSecurityToken(
+                issuer: _config["JWT:Issuer"],
+                audience: _config["JWT:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(int.Parse(_config["JWT:ExpiresMinutes"])),
+                signingCredentials: new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256)
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        // ================= USERS COUNT =================
+        public async Task<int> GetUsersCount()
+        {
+            return await _userManager.Users.CountAsync();
         }
     }
-
-
 }

@@ -15,5 +15,7 @@ public interface IGenericRepository<T> where T : class
 
     Task<bool> IsExist(int id );
 	Task SaveChangesAsync();
+
+    Task<int> CountAsync();
 }
 

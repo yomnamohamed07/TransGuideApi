@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using FuzzySharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using FuzzySharp;
 using TransGuide.Data.Entities.Identity;
 using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Data.Helper;
@@ -20,118 +20,417 @@ namespace TransGuide.Services
         private readonly IServicesManager _servicesManager;
         private readonly UserManager<UserProfile> _userManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IGeoLocationService _geoService;
 
         private List<Station> _stationIndex = new();
         private List<Route> _allRoutes = new();
-        private Dictionary<int, List<(Station NextStation, Route Route, double Distance)>> _transferGraph = new();
+        private Dictionary<int, List<(Station NextStation, Route Route, double Distance)>> _graph = new();
+
+        private const int MAX_TRANSFERS = 2;
+        private HashSet<int> _usedDirectRoutes = new();
 
         public LocationServices(
             IRouteRepository routeRepo,
             IMapper mapper,
             IServicesManager servicesManager,
             UserManager<UserProfile> userManager,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IGeoLocationService geoService)
         {
             _routeRepo = routeRepo;
             _mapper = mapper;
             _servicesManager = servicesManager;
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
+            _geoService = geoService;
         }
 
-        public async Task<Pagination<RouteDto>> GetAllRoutesPaginatedAsync(int pageIndex, int pageSize)
-        {
-            await LoadRoutesAndBuildGraphAsync();
-
-            var allTrips = _allRoutes.Select(route =>
-            {
-                var dto = _mapper.Map<RouteDto>(route);
-                var stations = route.RouteStations?.OrderBy(rs => rs.Order)
-                                .Select(rs => rs.Station).ToList() ?? new List<Station>();
-
-                dto.RouteLengthInKm = CalculateRouteLength(stations);
-
-                dto.RouteDetails = new List<RouteDetailDto>
-                {
-                    new RouteDetailDto
-                    {
-                        Id = route.Id,
-                        RouteName = route.Name,
-                        TicketPrice = route.TicketPrice,
-                        AverageTimeInMinutes = route.AverageTimeInMinutes,
-                        Stations = stations.Select(s => s.Name).ToList()
-                    }
-                };
-
-                dto.RouteType = stations.Count > 1 ? "Direct" : "Direct"; 
-
-                dto.TransferStations = new List<string>();
-
-                return dto;
-            }).Skip((pageIndex - 1) * pageSize)
-              .Take(pageSize)
-              .ToList();
-
-            return new Pagination<RouteDto>(pageIndex, pageSize, allTrips, _allRoutes.Count);
-        }
-
+       
         public async Task<Pagination<RouteDto>> GetRoutesAsync(int pageIndex, int pageSize, FilterDto filter)
         {
-            await LoadRoutesAndBuildGraphAsync();
+            await LoadGraphAsync();
 
-            Station startStation = null;
-            if (!string.IsNullOrWhiteSpace(filter.UserLocation))
-                startStation = _stationIndex.FirstOrDefault(s => Normalize(s.Name) == Normalize(filter.UserLocation));
+            var start = await FindStartStationAsync(filter);
+            var end = await FindEndStationAsync(filter);
 
-            if (startStation == null && filter.UserLatitude != 0 && filter.UserLongitude != 0)
-                startStation = _stationIndex
-                    .OrderBy(s => CalculateDistanceKm(filter.UserLatitude, filter.UserLongitude, s.Latitude, s.Longitude))
-                    .FirstOrDefault();
-
-            Station endStation = null;
-            if (!string.IsNullOrWhiteSpace(filter.Destination))
-                endStation = _stationIndex.FirstOrDefault(s => Normalize(s.Name) == Normalize(filter.Destination));
-
-            if (endStation == null && !string.IsNullOrWhiteSpace(filter.Destination))
-            {
-                var normalizedDestination = Normalize(filter.Destination);
-                endStation = _stationIndex
-                    .OrderByDescending(s => Fuzz.TokenSetRatio(normalizedDestination, Normalize(s.Name)))
-                    .FirstOrDefault();
-            }
-
-            if (startStation == null || endStation == null)
+            if (start == null || end == null)
                 return new Pagination<RouteDto>(pageIndex, pageSize, new List<RouteDto>(), 0);
 
-            var trips = FindTripsUsingTransferGraph(startStation, endStation, 3, filter, pageIndex, pageSize).ToList();
+            var directTrips = FindDirectTrips(start, end, filter);
+
+            _usedDirectRoutes = directTrips
+                .SelectMany(d => d.RouteDetails)
+                .Select(r => r.Id)
+                .ToHashSet();
 
             await SaveTripHistoryAsync(filter);
 
-            return new Pagination<RouteDto>(pageIndex, pageSize, trips, trips.Count);
+            if (directTrips.Any())
+                return new Pagination<RouteDto>(pageIndex, pageSize, directTrips, directTrips.Count);
+
+            var trips = FindBestTrips(start, end, filter);
+
+            var paged = trips
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new Pagination<RouteDto>(pageIndex, pageSize, paged, trips.Count);
         }
 
-        private async Task SaveTripHistoryAsync(FilterDto filter)
+       
+        private List<RouteDto> FindDirectTrips(Station start, Station end, FilterDto filter)
         {
-            if (filter == null || string.IsNullOrWhiteSpace(filter.UserLocation) || string.IsNullOrWhiteSpace(filter.Destination))
+            var directRoutes = _allRoutes.Where(r =>
+            {
+                var stations = r.RouteStations
+                    .OrderBy(rs => rs.Order)
+                    .Select(rs => rs.Station)
+                    .ToList();
+
+                var startStation = stations.FirstOrDefault(s => s.Id == start.Id);
+                var endStation = stations.FirstOrDefault(s => s.Id == end.Id);
+
+                if (startStation == null || endStation == null)
+                    return false;
+
+                return stations.IndexOf(startStation) < stations.IndexOf(endStation);
+            }).ToList();
+
+            var results = new List<RouteDto>();
+
+            foreach (var route in directRoutes)
+            {
+                var stations = route.RouteStations
+                    .OrderBy(rs => rs.Order)
+                    .Select(rs => rs.Station.Name)
+                    .ToList();
+
+                results.Add(BuildRouteDto(
+                    start,
+                    stations,
+                    new List<Route> { route },
+                    CalculateRouteDistance(route, start, end),
+                    filter));
+            }
+
+            return results;
+        }
+
+       
+        private double CalculateRouteDistance(Route route, Station start, Station end)
+        {
+            var stations = route.RouteStations
+                .OrderBy(rs => rs.Order)
+                .Select(rs => rs.Station)
+                .ToList();
+
+            int startIndex = stations.IndexOf(stations.First(s => s.Id == start.Id));
+            int endIndex = stations.IndexOf(stations.First(s => s.Id == end.Id));
+
+            double distance = 0;
+
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                distance += CalculateDistanceKm(
+                    stations[i].Latitude, stations[i].Longitude,
+                    stations[i + 1].Latitude, stations[i + 1].Longitude);
+            }
+
+            return distance;
+        }
+
+        
+        private List<RouteDto> FindBestTrips(Station start, Station end, FilterDto filter)
+        {
+            var pq = new PriorityQueue<(
+                Station station,
+                Route currentRoute,
+                double distance,
+                int transfers,
+                List<string> stations,
+                List<Route> routes), double>();
+
+            var visited = new Dictionary<(int, int?), int>();
+
+            pq.Enqueue((start, null, 0, 0, new List<string> { start.Name }, new List<Route>()), 0);
+
+            var results = new List<RouteDto>();
+
+            while (pq.Count > 0)
+            {
+                var (current, currentRoute, distance, transfers, pathStations, pathRoutes) = pq.Dequeue();
+
+                var key = (current.Id, currentRoute?.Id);
+
+                if (visited.ContainsKey(key) && visited[key] <= transfers)
+                    continue;
+
+                visited[key] = transfers;
+
+                if (current.Id == end.Id)
+                {
+                    results.Add(BuildRouteDto(start, pathStations, pathRoutes, distance, filter));
+                    continue;
+                }
+
+                if (!_graph.TryGetValue(current.Id, out var neighbors))
+                    continue;
+
+                foreach (var n in neighbors)
+                {
+                    if (_usedDirectRoutes.Contains(n.Route.Id))
+                        continue;
+
+                    int newTransfers =
+                        (currentRoute != null && currentRoute != n.Route)
+                        ? transfers + 1
+                        : transfers;
+
+                    if (newTransfers > MAX_TRANSFERS)
+                        continue;
+
+                    if (pathStations.Count > 1 && pathStations[^2] == n.NextStation.Name)
+                        continue;
+
+                    var newStations = new List<string>(pathStations) { n.NextStation.Name };
+                    var newRoutes = new List<Route>(pathRoutes);
+
+                    if (currentRoute != n.Route)
+                        newRoutes.Add(n.Route);
+
+                    double priority = newTransfers * 1000 + distance + n.Distance;
+
+                    pq.Enqueue((
+                        n.NextStation,
+                        n.Route,
+                        distance + n.Distance,
+                        newTransfers,
+                        newStations,
+                        newRoutes), priority);
+                }
+            }
+
+            return results
+                .OrderBy(r => r.TransferStations.Count)
+                .ThenBy(r => r.RouteLengthInKm)
+                .Take(5)
+                .ToList();
+        }
+
+   
+        private async Task LoadGraphAsync()
+        {
+            if (_allRoutes.Any())
                 return;
 
-            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(userId)) return;
+            _allRoutes = (await _routeRepo.GetAllAsync())?.ToList() ?? new();
+
+            _stationIndex = _allRoutes
+                .SelectMany(r => r.RouteStations)
+                .Select(rs => rs.Station)
+                .Distinct()
+                .ToList();
+
+            foreach (var route in _allRoutes)
+            {
+                var stations = route.RouteStations
+                    .OrderBy(rs => rs.Order)
+                    .Select(rs => rs.Station)
+                    .ToList();
+
+                for (int i = 0; i < stations.Count - 1; i++)
+                {
+                    var a = stations[i];
+                    var b = stations[i + 1];
+
+                    double dist = CalculateDistanceKm(
+                        a.Latitude, a.Longitude,
+                        b.Latitude, b.Longitude);
+
+                    if (!_graph.ContainsKey(a.Id))
+                        _graph[a.Id] = new();
+
+                    if (!_graph.ContainsKey(b.Id))
+                        _graph[b.Id] = new();
+
+                    _graph[a.Id].Add((b, route, dist));
+                    _graph[b.Id].Add((a, route, dist));
+                }
+            }
+        }
+
+       
+        private RouteDto BuildRouteDto(
+            Station start,
+            List<string> stations,
+            List<Route> routes,
+            double distance,
+            FilterDto filter)
+        {
+            return new RouteDto
+            {
+                RouteType = routes.Count <= 1 ? "Direct" : $"{routes.Count - 1} Transfer",
+                RouteName = string.Join(" + ", routes.Select(r => r.Name)),
+                RouteLengthInKm = distance,
+                ClosestStationName = start.Name,
+                DistanceToClosestStationKm =
+                    CalculateDistanceKm(filter.UserLatitude, filter.UserLongitude,
+                                        start.Latitude, start.Longitude),
+
+                RouteDetails = routes.Select(r =>
+                {
+                    var routeStations = r.RouteStations
+                        .OrderBy(rs => rs.Order)
+                        .Select(rs => rs.Station.Name)
+                        .ToList();
+
+                    return new RouteDetailDto
+                    {
+                        Id = r.Id,
+                        RouteName = r.Name,
+                        TicketPrice = r.TicketPrice,
+                        AverageTimeInMinutes = r.AverageTimeInMinutes,
+                        Stations = routeStations
+                    };
+                }).ToList(),
+
+                TransferStations = ExtractTransfers(routes, stations)
+            };
+        }
+
+        
+        private List<string> ExtractTransfers(List<Route> routes, List<string> stations)
+        {
+            var transfers = new List<string>();
+
+            for (int i = 0; i < routes.Count - 1; i++)
+            {
+                var r1 = routes[i].RouteStations.Select(s => s.Station.Name).ToList();
+                var r2 = routes[i + 1].RouteStations.Select(s => s.Station.Name).ToList();
+
+                var station = stations.FirstOrDefault(s =>
+                    r1.Contains(s) && r2.Contains(s));
+
+                if (station != null && !transfers.Contains(station))
+                    transfers.Add(station);
+            }
+
+            return transfers;
+        }
+
+        // =========================
+        private Station FindBestStation(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+
+            var normalized = Normalize(input);
+
+            return _stationIndex
+                .Select(s => new
+                {
+                    Station = s,
+                    Score = Math.Max(
+                        Fuzz.TokenSetRatio(normalized, Normalize(s.Name)),
+                        Fuzz.TokenSortRatio(normalized, Normalize(s.Name))
+                    )
+                })
+                .Where(x => x.Score >= 75)
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault()?.Station;
+        }
+
+       
+        private async Task<Station> FindStartStationAsync(FilterDto filter)
+        {
+            if (!string.IsNullOrWhiteSpace(filter.UserLocation))
+            {
+                var byName = FindBestStation(filter.UserLocation);
+                if (byName != null) return byName;
+
+               
+                if (filter.UserLatitude != 0)
+                    return await _geoService.GetNearestStationAsync(
+                        filter.UserLatitude, filter.UserLongitude);
+            }
+
+            if (filter.UserLatitude != 0)
+                return await _geoService.GetNearestStationAsync(
+                    filter.UserLatitude, filter.UserLongitude);
+
+            return null;
+        }
+
+        private async Task<Station> FindEndStationAsync(FilterDto filter)
+        {
+            if (!string.IsNullOrWhiteSpace(filter.Destination))
+            {
+                var byName = FindBestStation(filter.Destination);
+                if (byName != null) return byName;
+
+               
+                if (filter.DestinationLatitude != 0)
+                    return await _geoService.GetNearestStationAsync(
+                        filter.DestinationLatitude, filter.DestinationLongitude);
+            }
+
+            if (filter.DestinationLatitude != 0)
+                return await _geoService.GetNearestStationAsync(
+                    filter.DestinationLatitude, filter.DestinationLongitude);
+
+            return null;
+        }
+
+        // =========================
+        private string Normalize(string text)
+        {
+            return text?.ToLower()
+                .Replace("أ", "ا")
+                .Replace("إ", "ا")
+                .Replace("آ", "ا")
+                .Replace("ة", "ه")
+                .Replace("ى", "ي")
+                .Replace("ئ", "ي")
+                .Replace("ؤ", "و")
+                .Replace("ء", "")
+                .Trim();
+        }
+
+        private double CalculateDistanceKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
+        {
+            var R = 6371;
+            var dLat = (double)(lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (double)(lon2 - lon1) * Math.PI / 180.0;
+
+            var a =
+                Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos((double)lat1 * Math.PI / 180.0) *
+                Math.Cos((double)lat2 * Math.PI / 180.0) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            return R * (2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a)));
+        }
+
+        
+        private async Task SaveTripHistoryAsync(FilterDto filter)
+        {
+            var userId = _httpContextAccessor.HttpContext?
+                .User?
+                .FindFirst(ClaimTypes.NameIdentifier)?
+                .Value;
+
+            if (string.IsNullOrWhiteSpace(userId))
+                return;
 
             var history = await _servicesManager.HistoryServices.GetHistoryAsync(userId)
-                          ?? new HistoryDto { UserId = userId };
+                          ?? new HistoryDto { UserId = userId, Trips = new List<TripDto>() };
 
-            history.Trips ??= new List<TripDto>();
-
-            bool isDuplicate = history.Trips.Any(t =>
+            if (history.Trips.Any(t =>
                 t.UserLocation == filter.UserLocation &&
-                t.Destination == filter.Destination &&
-                t.UserLatitude == filter.UserLatitude &&
-                t.UserLongitude == filter.UserLongitude);
+                t.Destination == filter.Destination))
+                return;
 
-            if (isDuplicate) return;
-
-            var trip = new TripDto
+            history.Trips.Insert(0, new TripDto
             {
                 Id = Guid.NewGuid().ToString(),
                 UserLocation = filter.UserLocation,
@@ -141,151 +440,9 @@ namespace TransGuide.Services
                 DestinationLatitude = filter.DestinationLatitude,
                 DestinationLongitude = filter.DestinationLongitude,
                 Date = DateOnly.FromDateTime(DateTime.UtcNow)
-            };
-
-            history.Trips.Insert(0, trip);
+            });
 
             await _servicesManager.HistoryServices.CreateorUpdateHistoryAsync(history);
-        }
-
-        private IEnumerable<RouteDto> FindTripsUsingTransferGraph(
-            Station start, Station end, int maxTransfers, FilterDto filter, int pageIndex, int pageSize)
-        {
-            var queue = new Queue<(Station Current, Route CurrentRoute, int Transfers, double Distance, List<string> PathStations, List<Route> PathRoutes)>();
-            var visited = new Dictionary<(int StationId, int? RouteId), int>();
-            queue.Enqueue((start, null, 0, 0, new List<string> { start.Name }, new List<Route>()));
-
-            int skip = (pageIndex - 1) * pageSize;
-            int taken = 0;
-
-            while (queue.Count > 0)
-            {
-                var (current, currentRoute, transfers, distance, pathStations, pathRoutes) = queue.Dequeue();
-                int? currentRouteId = currentRoute?.Id;
-                var key = (current.Id, currentRouteId);
-
-                if (visited.ContainsKey(key) && visited[key] <= transfers) continue;
-                visited[key] = transfers;
-
-                if (current.Id == end.Id)
-                {
-                    if (skip > 0) { skip--; continue; }
-                    if (taken >= pageSize) yield break;
-
-                    taken++;
-
-                    var dto = new RouteDto
-                    {
-                        RouteType = pathRoutes.Count == 1 ? "Direct" : $"{pathRoutes.Count - 1}Transfer(s)",
-                        RouteName = string.Join(" + ", pathRoutes.Select(r => r.Name)),
-                        RouteLengthInKm = distance,
-                        ClosestStationName = start.Name,
-                        DistanceToClosestStationKm = CalculateDistanceKm(filter.UserLatitude, filter.UserLongitude, start.Latitude, start.Longitude),
-                        RouteDetails = new List<RouteDetailDto>(),
-                        TransferStations = new List<string>()
-                    };
-
-                    for (int k = 0; k < pathRoutes.Count; k++)
-                    {
-                        var route = pathRoutes[k];
-                        dto.RouteDetails.Add(new RouteDetailDto
-                        {
-                            Id = route.Id,
-                            RouteName = route.Name,
-                            TicketPrice = route.TicketPrice,
-                            AverageTimeInMinutes = route.AverageTimeInMinutes,
-                            Stations = route.RouteStations.OrderBy(rs => rs.Order).Select(rs => rs.Station.Name).ToList()
-                        });
-
-                        if (k < pathRoutes.Count - 1)
-                        {
-                            var nextRoute = pathRoutes[k + 1];
-                            var transferStation = pathStations.FirstOrDefault(s =>
-                                route.RouteStations.Any(rs => rs.Station.Name == s) &&
-                                nextRoute.RouteStations.Any(rs => rs.Station.Name == s));
-                            if (transferStation != null && !dto.TransferStations.Contains(transferStation))
-                                dto.TransferStations.Add(transferStation);
-                        }
-                    }
-
-                    yield return dto;
-                    continue;
-                }
-
-                if (transfers > maxTransfers) continue;
-                if (!_transferGraph.TryGetValue(current.Id, out var neighbors)) continue;
-
-                foreach (var neighbor in neighbors)
-                {
-                    if (pathStations.Contains(neighbor.NextStation.Name)) continue;
-
-                    var newTransfers = currentRoute != neighbor.Route ? transfers + 1 : transfers;
-                    var newPathStations = new List<string>(pathStations) { neighbor.NextStation.Name };
-                    var newPathRoutes = new List<Route>(pathRoutes);
-                    if (currentRoute != neighbor.Route && neighbor.Route != null) newPathRoutes.Add(neighbor.Route);
-                    double newDistance = distance + neighbor.Distance;
-
-                    queue.Enqueue((neighbor.NextStation, neighbor.Route, newTransfers, newDistance, newPathStations, newPathRoutes));
-                }
-            }
-        }
-
-        private async Task LoadRoutesAndBuildGraphAsync()
-        {
-            if (_allRoutes.Any()) return;
-
-            _allRoutes = (await _routeRepo.GetAllAsync())?.ToList() ?? new List<Route>();
-            BuildStationIndex(_allRoutes);
-            _transferGraph = new Dictionary<int, List<(Station, Route, double)>>();
-
-            foreach (var route in _allRoutes)
-            {
-                var stations = route.RouteStations.OrderBy(rs => rs.Order).Select(rs => rs.Station).ToList();
-                for (int i = 0; i < stations.Count; i++)
-                {
-                    int stationId = stations[i].Id;
-                    if (!_transferGraph.ContainsKey(stationId)) _transferGraph[stationId] = new List<(Station, Route, double)>();
-
-                    for (int j = 0; j < stations.Count; j++)
-                    {
-                        if (i == j) continue;
-                        double dist = CalculateDistanceKm(stations[i].Latitude, stations[i].Longitude, stations[j].Latitude, stations[j].Longitude);
-                        _transferGraph[stationId].Add((stations[j], route, dist));
-                    }
-                }
-            }
-        }
-
-        private void BuildStationIndex(IEnumerable<Route> routes)
-        {
-            if (_stationIndex.Any()) return;
-            _stationIndex = routes.SelectMany(r => r.RouteStations).Select(rs => rs.Station).Distinct().ToList();
-        }
-
-        private string Normalize(string text)
-        {
-            return text.ToLower().Replace("أ", "ا").Replace("إ", "ا").Replace("آ", "ا").Replace("ة", "ه").Trim();
-        }
-
-        private double CalculateDistanceKm(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
-        {
-            var R = 6371;
-            var dLat = (double)(lat2 - lat1) * Math.PI / 180.0;
-            var dLon = (double)(lon2 - lon1) * Math.PI / 180.0;
-            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                    Math.Cos((double)lat1 * Math.PI / 180.0) *
-                    Math.Cos((double)lat2 * Math.PI / 180.0) *
-                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return R * c;
-        }
-
-        private double CalculateRouteLength(List<Station> stations)
-        {
-            double total = 0;
-            for (int i = 0; i < stations.Count - 1; i++)
-                total += CalculateDistanceKm(stations[i].Latitude, stations[i].Longitude, stations[i + 1].Latitude, stations[i + 1].Longitude);
-            return total;
         }
     }
 }

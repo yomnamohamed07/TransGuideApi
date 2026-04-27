@@ -10,8 +10,10 @@ namespace TransGuide.Data.Entities.ApplicationEntities
 
 		public  decimal  Longitude { get; set; }
 
-		//public ICollection<Route> Routes { get; set; } = new HashSet<Route>();
+        public bool IsDeleted { get; set; }
 
-		public ICollection<RouteStation> RouteStations { get; set; } = new HashSet<RouteStation>();
+        //public ICollection<Route> Routes { get; set; } = new HashSet<Route>();
+
+        public ICollection<RouteStation> RouteStations { get; set; } = new HashSet<RouteStation>();
 	}
 }

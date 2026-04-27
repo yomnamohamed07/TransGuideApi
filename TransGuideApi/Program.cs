@@ -1,31 +1,34 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TransGuide.Data;
-using TransGuide.Infrustructure.data;
 using TransGuideApi.MiddleWare;
 using TransGuideApi.Extentions;
-using System;
 using AspNetCoreRateLimit;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using TransGuide.Data.Entities.Identity;
+using TransGuide.Data.Repositories;
+using TransGuide.Data.Services;
+using TransGuide.Data.Entities.ApplicationEntities;
+using TransGuide.Infrustructure.data;
 
 namespace TransGuideApi
 {
-
     public class Program
     {
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+        
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            
             builder.Services.AddApplicationService(builder.Configuration);
+            builder.Services.AddIdentityService(builder.Configuration);
 
-
-            //builder.Services.AddDbContext<TransGuideDbContext>(options =>
-            // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
             builder.Services.AddDbContext<TransGuideDbContext>(options =>
             {
                 options.UseSqlServer(
@@ -33,25 +36,38 @@ namespace TransGuideApi
 
                 options.EnableSensitiveDataLogging();
             });
-            builder.Services.AddDbContext<TransGuideDbContext>(Options =>
+
+            builder.Services.AddDbContext<TransGuideDbContext>(options =>
             {
-                Options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityDefaultConnection"));
-            }
-            );
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("IdentityDefaultConnection"));
+            });
 
-
-            builder.Services.AddApplicationService(builder.Configuration);
-            builder.Services.AddIdentityService(builder.Configuration);
+           
             builder.Services.AddMemoryCache();
-            builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
-            builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+            builder.Services.Configure<IpRateLimitOptions>(
+                builder.Configuration.GetSection("IpRateLimiting"));
+
+            builder.Services.Configure<IpRateLimitPolicies>(
+                builder.Configuration.GetSection("IpRateLimitPolicies"));
+
             builder.Services.AddInMemoryRateLimiting();
             builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
+        
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowAnyOrigin();
+                });
+            });
+
             var app = builder.Build();
 
-
-            #region update database
+        
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -59,39 +75,58 @@ namespace TransGuideApi
 
                 try
                 {
+                    
                     var dbcontext = services.GetRequiredService<TransGuideDbContext>();
                     await dbcontext.Database.MigrateAsync();
                     await dataseeding.SeedAsync(dbcontext);
+
+                  
+                    var userManager = services.GetRequiredService<UserManager<UserProfile>>();
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+                    await RoleSeeding.SeedAsync(roleManager);
+                    await UserSeeding.SeedAsync(userManager);
+
+                    
+                    var geo = services.GetRequiredService<IGeoLocationService>();
+                    var stationRepo = services.GetRequiredService<IGenericRepository<Station>>();
+
+                    var stations = await stationRepo.GetAllAsync();
+
+                    if (stations != null && stations.Any())
+                    {
+                        await geo.AddStationsAsync(stations);
+                    }
                 }
                 catch (Exception ex)
                 {
                     var logger = loggerFactory.CreateLogger<Program>();
-                    logger.LogError(ex, "Error occurred during applying migration");
+                    logger.LogError(ex, "Error occurred during startup seeding");
                 }
-                #endregion
-
-              
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseMiddleware<ExceptionMiddleWare>();
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
-                }
-
-
-                app.UseHttpsRedirection();
-                app.UseStaticFiles();
-             
-                app.UseAuthentication();
-                app.UseAuthorization();
-
-                app.MapControllers();
-
-                app.Run();
-
-
-           
             }
+
+        
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseCors("AllowFrontend");
+
+            app.UseMiddleware<ExceptionMiddleWare>();
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+            app.Run();
         }
     }
 }

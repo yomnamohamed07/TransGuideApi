@@ -43,6 +43,11 @@ namespace TransGuide.Data
                 new RouteStatus { Id = (int)RouteStatusEnum.UnderMaintenance, Name = "Under Maintenance" },
                 new RouteStatus { Id = (int)RouteStatusEnum.Closed, Name = "Closed" }
             );
+            modelBuilder.Entity<RouteType>().HasData(
+              new RouteStatus { Id = (int)RouteTypeEnum.باص  ,Name="باص"},
+              new RouteStatus { Id = (int)RouteTypeEnum.مترو, Name = "مترو" }
+              
+          );
 
             // Seed Ratings
             modelBuilder.Entity<Rating>().HasData(
@@ -58,6 +63,8 @@ namespace TransGuide.Data
         public DbSet<Route> Routes { get; set; }
         public DbSet<Station> Stations { get; set; }
         public DbSet<RouteStatus> RouteStatuses { get; set; }
+
+        public DbSet<RouteType> RouteTypes { get; set; }
         public DbSet<TripStatus> TripStatuses { get; set; }
         public DbSet<RouteStation> RouteStations { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }

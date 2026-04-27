@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 using TransGuide.Data;
 using TransGuide.Data.Repositories;
 
@@ -61,5 +62,10 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         if (result!= null)
             return true;
         else return false;
+    }
+
+    public async Task<int> CountAsync()
+    {
+        return await _context.Set<T>().CountAsync();
     }
 }

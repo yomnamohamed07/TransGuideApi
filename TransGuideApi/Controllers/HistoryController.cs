@@ -73,5 +73,13 @@ namespace TransGuideApi.Controllers
                     new ApiExceptionResponse(500, "Something went wrong", ex.Message));
             }
         }
+    
+        [HttpGet("GetTripsCount")]
+        public async Task<IActionResult> GetTotalTrips()
+        {
+            var count = await _servicesManager.HistoryServices.GetTotalTripsAsync();
+        
+               return Ok(new {Count = count });
+        }
     }
 }

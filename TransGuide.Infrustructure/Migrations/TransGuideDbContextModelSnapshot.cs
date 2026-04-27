@@ -328,10 +328,16 @@ namespace TransGuide.Infrustructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("ParentRouteId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Region")
                         .IsRequired()
@@ -339,6 +345,9 @@ namespace TransGuide.Infrustructure.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<int>("RouteStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RouteTypeId")
                         .HasColumnType("int");
 
                     b.Property<string>("StartPoint")
@@ -349,9 +358,17 @@ namespace TransGuide.Infrustructure.Migrations
                     b.Property<int>("TicketPrice")
                         .HasColumnType("int");
 
+                    b.Property<string>("type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentRouteId");
+
                     b.HasIndex("RouteStatusId");
+
+                    b.HasIndex("RouteTypeId");
 
                     b.ToTable("Routes");
                 });
@@ -409,6 +426,36 @@ namespace TransGuide.Infrustructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RouteTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "باص"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "مترو"
+                        });
+                });
+
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Station", b =>
                 {
                     b.Property<int>("Id")
@@ -416,6 +463,9 @@ namespace TransGuide.Infrustructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("Latitude")
                         .HasPrecision(9, 6)
@@ -655,13 +705,28 @@ namespace TransGuide.Infrustructure.Migrations
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Route", b =>
                 {
+                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.Route", "ParentRoute")
+                        .WithMany("SubRoutes")
+                        .HasForeignKey("ParentRouteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("TransGuide.Data.Entities.ApplicationEntities.RouteStatus", "Status")
                         .WithMany()
                         .HasForeignKey("RouteStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("TransGuide.Data.Entities.ApplicationEntities.RouteType", "Type")
+                        .WithMany()
+                        .HasForeignKey("RouteTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentRoute");
+
                     b.Navigation("Status");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.RouteStation", b =>
@@ -693,6 +758,8 @@ namespace TransGuide.Infrustructure.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("RouteStations");
+
+                    b.Navigation("SubRoutes");
                 });
 
             modelBuilder.Entity("TransGuide.Data.Entities.ApplicationEntities.Station", b =>
