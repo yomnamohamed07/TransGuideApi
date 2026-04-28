@@ -35,14 +35,7 @@ namespace TransGuideApi.Controllers
         //   return StatusCode(500, new ApiExceptionResponse(500, "Something went wrong", ex.Message));
         //  }
         //   }
-        [HttpGet("test-geo")]
-        public async Task<IActionResult> TestGeo(double lat, double lng)
-        {
-            var result = await geoLocationService.GetNearestStationAsync((decimal)lat, (decimal)lng);
-            if (result == null)
-                return BadRequest("No Station Found");
-            return Ok(result);
-        }
+      
         [HttpPost("SearchRoutes")]
         public async Task<IActionResult> SearchRoutes([FromBody] FilterDto filter, int pageIndex = 1, int pageSize = 10)
         {

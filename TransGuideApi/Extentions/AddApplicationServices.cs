@@ -63,6 +63,7 @@ namespace TransGuideApi.Extentions
             services.AddScoped<IGeoLocationService, GeoLocationService>();
             services.AddScoped<IRouteServices, RouteServices>();
             services.AddScoped<IStationService, StationService>();
+            services.AddScoped<IVoiceServices, VoiceServices>();
             
 
             services.AddSignalR();
