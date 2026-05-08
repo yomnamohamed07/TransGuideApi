@@ -110,6 +110,10 @@ namespace TransGuideApi
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseCors("AllowFrontend");
 

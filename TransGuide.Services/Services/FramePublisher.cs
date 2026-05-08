@@ -1,22 +1,30 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Text;
 using RabbitMQ.Client;
+using System.Text;
 using TransGuide.Data.MappingProfiles.Outputs;
 using TransGuide.Data.Services;
 
 namespace TransGuide.Services.Services
 {
-    public class FramePublisher : IFramePublisher
+    public class FramePublisher : IFramePublisher, IAsyncDisposable
     {
+        private IChannel? _channel;
+        private IConnection? _connection;
         private readonly RabbitMqSettings _settings;
+        private bool _initialized = false;
 
         public FramePublisher(IOptions<RabbitMqSettings> options)
         {
             _settings = options.Value;
         }
 
-        public async Task PublishAsync(string frame)
+        // =========================
+        // INIT CONNECTION
+        // =========================
+        public async Task InitializeAsync()
         {
+            if (_initialized) return;
+
             var factory = new ConnectionFactory
             {
                 HostName = _settings.Host,
@@ -24,8 +32,6 @@ namespace TransGuide.Services.Services
                 UserName = _settings.Username,
                 Password = _settings.Password,
                 VirtualHost = _settings.VirtualHost,
-
-                // ✅ SSL مهم جدًا لـ CloudAMQP
                 Ssl = new SslOption
                 {
                     Enabled = _settings.UseSsl,
@@ -33,23 +39,58 @@ namespace TransGuide.Services.Services
                 }
             };
 
-            await using var connection = await factory.CreateConnectionAsync();
-            await using var channel = await connection.CreateChannelAsync();
+            // 🔥 FIX: no cancellation token
+            _connection = await factory.CreateConnectionAsync();
+            _channel = await _connection.CreateChannelAsync();
 
-            await channel.QueueDeclareAsync(
+            await _channel.QueueDeclareAsync(
                 queue: _settings.QueueName,
                 durable: true,
                 exclusive: false,
-                autoDelete: false
-            );
+                autoDelete: false);
 
-            var body = Encoding.UTF8.GetBytes(frame);
+            _initialized = true;
 
-            await channel.BasicPublishAsync(
+            Console.WriteLine("✅ RabbitMQ Publisher Initialized");
+        }
+
+        // =========================
+        // PUBLISH FRAME
+        // =========================
+        public async Task PublishAsync(byte[] body, string sessionId, string type)
+        {
+            if (!_initialized)
+                await InitializeAsync();
+
+            var props = new BasicProperties
+            {
+                Headers = new Dictionary<string, object?>
+                {
+                    { "sessionId", Encoding.UTF8.GetBytes(sessionId) },
+                    { "type", Encoding.UTF8.GetBytes(type) }
+                }
+            };
+
+            await _channel!.BasicPublishAsync(
                 exchange: "",
                 routingKey: _settings.QueueName,
-                body: body
-            );
+                mandatory: false,
+                basicProperties: props,
+                body: body);
+
+            Console.WriteLine("📤 Frame Published");
+        }
+
+        // =========================
+        // DISPOSE
+        // =========================
+        public async ValueTask DisposeAsync()
+        {
+            if (_channel != null)
+                await _channel.CloseAsync();
+
+            if (_connection != null)
+                await _connection.CloseAsync();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
-using TransGuide.Data.MappingProfiles.Outputs;
+
 namespace TransGuide.Services.Services
 {
     public class AiService
@@ -24,12 +24,23 @@ namespace TransGuide.Services.Services
                 data = new[] { frame }
             });
 
+            Console.WriteLine("📡 Calling AI...");
+
             var res = await _http.PostAsync(
                 url,
                 new StringContent(json, Encoding.UTF8, "application/json"));
 
-            return await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                var error = await res.Content.ReadAsStringAsync();
+                throw new Exception($"AI Error: {res.StatusCode} - {error}");
+            }
+
+            var result = await res.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"🤖 AI Result: {result}");
+
+            return result;
         }
-       
     }
 }

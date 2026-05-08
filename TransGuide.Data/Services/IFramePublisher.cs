@@ -4,6 +4,6 @@ namespace TransGuide.Data.Services
 {
      public interface IFramePublisher
     {
-        public Task PublishAsync(string frame);
+        Task PublishAsync(byte[] body, string sessionId, string type);
     }
 }

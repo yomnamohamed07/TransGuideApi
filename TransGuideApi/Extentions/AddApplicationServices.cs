@@ -24,14 +24,10 @@ namespace TransGuideApi.Extentions
     {
         public static IServiceCollection AddApplicationService(this IServiceCollection services, IConfiguration configuration)
         {
-            // ========================
-            // Generic Repository
-            // ========================
+          
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-            // ========================
-            // API Behavior (Validation Errors)
-            // ========================
+           
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = actionContext =>
@@ -51,25 +47,19 @@ namespace TransGuideApi.Extentions
                 };
             });
 
-            // ========================
-            // AutoMapper Profiles
-            // ========================
+            
             services.AddAutoMapper(m => m.AddProfile(typeof(RouteProfile)));
             services.AddAutoMapper(m => m.AddProfile(typeof(HistoryProfile)));
             services.AddAutoMapper(m => m.AddProfile(typeof(FeedbackProfile)));
             services.AddAutoMapper(m => m.AddProfile(typeof(StationProfile)));
 
-            // ========================
-            // Repositories
-            // ========================
+           
             services.AddScoped<IHistoryRepository, HistoryRepository>();
             services.AddScoped<IRouteRepository, RouteRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 
-            // ========================
-            // Services
-            // ========================
+           
             services.AddScoped<IHistoryServices, HistoryServices>();
             services.AddScoped<IServicesManager, ServicesManager>();
             services.AddScoped<ILocationServices, LocationServices>();
@@ -79,13 +69,12 @@ namespace TransGuideApi.Extentions
             services.AddScoped<IRouteServices, RouteServices>();
             services.AddScoped<IStationService, StationService>();
             services.AddScoped<IVoiceServices, VoiceServices>();
-
-            // ⚠️ مهم: GeoLocation لازم Scoped مش Singleton
+            services.AddScoped<SignSessionService>();
+            services.AddHostedService<SessionWatcher>();
+          
             services.AddScoped<IGeoLocationService, GeoLocationService>();
 
-            // ========================
-            // RabbitMQ / AI / Frame
-            // ========================
+        
             services.AddSingleton<IFramePublisher, FramePublisher>();
 
             services.AddHttpClient<AiService>();
@@ -95,14 +84,10 @@ namespace TransGuideApi.Extentions
 
             services.AddHostedService<SignConsumer>();
 
-            // ========================
-            // SignalR
-            // ========================
+          
             services.AddSignalR();
 
-            // ========================
-            // Redis
-            // ========================
+         
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
@@ -116,9 +101,7 @@ namespace TransGuideApi.Extentions
                 return ConnectionMultiplexer.Connect(options);
             });
 
-            // ========================
-            // HttpContext
-            // ========================
+           
             services.AddHttpContextAccessor();
 
             return services;

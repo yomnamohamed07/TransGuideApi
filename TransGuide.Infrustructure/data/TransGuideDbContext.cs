@@ -70,6 +70,8 @@ namespace TransGuide.Data
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+
+        public DbSet<SignSession> SignSessions { get; set; }
     }
 }
 
