@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System.Text;
 using System.Text.Json;
 
 namespace TransGuide.Services.Services
@@ -13,34 +12,29 @@ namespace TransGuide.Services.Services
         {
             _http = http;
             _config = config;
+            _http.Timeout = TimeSpan.FromSeconds(30);
         }
 
-        public async Task<string> Predict(string frame)
+        public async Task<string> Predict(byte[] imageBytes)
         {
             var url = _config["AI:Url"];
 
-            var json = JsonSerializer.Serialize(new
-            {
-                data = new[] { frame }
-            });
+            using var content = new MultipartFormDataContent();
+            content.Add(new ByteArrayContent(imageBytes), "file", "frame.jpg");
 
-            Console.WriteLine("📡 Calling AI...");
+            var response = await _http.PostAsync(url, content);
 
-            var res = await _http.PostAsync(
-                url,
-                new StringContent(json, Encoding.UTF8, "application/json"));
+            var json = await response.Content.ReadAsStringAsync();
 
-            if (!res.IsSuccessStatusCode)
-            {
-                var error = await res.Content.ReadAsStringAsync();
-                throw new Exception($"AI Error: {res.StatusCode} - {error}");
-            }
+            var result =
+                JsonSerializer.Deserialize<AiPredictionResponse>(json);
 
-            var result = await res.Content.ReadAsStringAsync();
-
-            Console.WriteLine($"🤖 AI Result: {result}");
-
-            return result;
+            return result?.Prediction ?? "";
         }
+    }
+
+    public class AiPredictionResponse
+    {
+        public string Prediction { get; set; } = "";
     }
 }

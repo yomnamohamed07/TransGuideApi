@@ -6,24 +6,31 @@ using TransGuide.Data.Services;
 
 namespace TransGuide.Services.Services
 {
-    public class FramePublisher : IFramePublisher, IAsyncDisposable
+    public class FramePublisher :
+        IFramePublisher,
+        IAsyncDisposable
     {
         private IChannel? _channel;
         private IConnection? _connection;
+
         private readonly RabbitMqSettings _settings;
+
         private bool _initialized = false;
 
-        public FramePublisher(IOptions<RabbitMqSettings> options)
+        public FramePublisher(
+            IOptions<RabbitMqSettings> options)
         {
             _settings = options.Value;
         }
 
-        // =========================
-        // INIT CONNECTION
-        // =========================
         public async Task InitializeAsync()
         {
-            if (_initialized) return;
+            if (_initialized &&
+                _connection != null &&
+                _connection.IsOpen)
+            {
+                return;
+            }
 
             var factory = new ConnectionFactory
             {
@@ -32,6 +39,7 @@ namespace TransGuide.Services.Services
                 UserName = _settings.Username,
                 Password = _settings.Password,
                 VirtualHost = _settings.VirtualHost,
+
                 Ssl = new SslOption
                 {
                     Enabled = _settings.UseSsl,
@@ -39,9 +47,11 @@ namespace TransGuide.Services.Services
                 }
             };
 
-            // 🔥 FIX: no cancellation token
-            _connection = await factory.CreateConnectionAsync();
-            _channel = await _connection.CreateChannelAsync();
+            _connection =
+                await factory.CreateConnectionAsync();
+
+            _channel =
+                await _connection.CreateChannelAsync();
 
             await _channel.QueueDeclareAsync(
                 queue: _settings.QueueName,
@@ -51,23 +61,29 @@ namespace TransGuide.Services.Services
 
             _initialized = true;
 
-            Console.WriteLine("✅ RabbitMQ Publisher Initialized");
+            Console.WriteLine(
+                "✅ RabbitMQ Publisher Initialized");
         }
 
-        // =========================
-        // PUBLISH FRAME
-        // =========================
-        public async Task PublishAsync(byte[] body, string sessionId, string type)
+        public async Task PublishAsync(
+            byte[] body,
+            string sessionId,
+            string type)
         {
-            if (!_initialized)
-                await InitializeAsync();
+            await InitializeAsync();
 
             var props = new BasicProperties
             {
                 Headers = new Dictionary<string, object?>
                 {
-                    { "sessionId", Encoding.UTF8.GetBytes(sessionId) },
-                    { "type", Encoding.UTF8.GetBytes(type) }
+                    {
+                        "sessionId",
+                        Encoding.UTF8.GetBytes(sessionId)
+                    },
+                    {
+                        "type",
+                        Encoding.UTF8.GetBytes(type)
+                    }
                 }
             };
 
@@ -81,9 +97,6 @@ namespace TransGuide.Services.Services
             Console.WriteLine("📤 Frame Published");
         }
 
-        // =========================
-        // DISPOSE
-        // =========================
         public async ValueTask DisposeAsync()
         {
             if (_channel != null)

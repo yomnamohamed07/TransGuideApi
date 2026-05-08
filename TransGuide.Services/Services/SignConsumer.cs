@@ -24,86 +24,63 @@ namespace TransGuide.Services.Services
             _settings = options.Value;
         }
 
-        // =========================
-        // CONNECT (SAFE + RETRY READY)
-        // =========================
         private async Task ConnectAsync()
         {
-            try
+            var factory = new ConnectionFactory
             {
-                var factory = new ConnectionFactory
-                {
-                    HostName = _settings.Host,
-                    Port = _settings.Port,
-                    UserName = _settings.Username,
-                    Password = _settings.Password,
-                    VirtualHost = _settings.VirtualHost,
+                HostName = _settings.Host,
+                Port = _settings.Port,
+                UserName = _settings.Username,
+                Password = _settings.Password,
+                VirtualHost = _settings.VirtualHost
+            };
 
-                    RequestedConnectionTimeout = TimeSpan.FromSeconds(10),
+            _connection = await factory.CreateConnectionAsync();
+            _channel = await _connection.CreateChannelAsync();
 
-                    Ssl = new SslOption
-                    {
-                        Enabled = _settings.UseSsl,
-                        ServerName = _settings.Host
-                    }
-                };
-
-                _connection = await factory.CreateConnectionAsync("SignConsumer");
-                _channel = await _connection.CreateChannelAsync();
-
-                await _channel.QueueDeclareAsync(
-                    queue: _settings.QueueName,
-                    durable: true,
-                    exclusive: false,
-                    autoDelete: false);
-
-                Console.WriteLine("✅ RabbitMQ Connected");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("❌ RabbitMQ failed: " + ex.Message);
-
-                _connection = null;
-                _channel = null;
-            }
+            await _channel.QueueDeclareAsync(
+                queue: _settings.QueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false);
         }
 
-      
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await ConnectAsync();
-
-            
-            if (_channel == null)
-            {
-                Console.WriteLine("⚠️ RabbitMQ not available. Consumer paused.");
-
-                await Task.Delay(Timeout.Infinite, stoppingToken);
-                return;
-            }
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
             consumer.ReceivedAsync += async (sender, ea) =>
             {
+                using var scope = _scopeFactory.CreateScope();
+
                 try
                 {
-                    var body = ea.Body.ToArray();
+                    var headers = ea.BasicProperties?.Headers;
 
-                    var sessionId = Encoding.UTF8.GetString(
-                        (byte[])ea.BasicProperties.Headers!["sessionId"]);
+                    if (headers == null)
+                    {
+                        await _channel!.BasicAckAsync(ea.DeliveryTag, false);
+                        return;
+                    }
 
-                    var type = Encoding.UTF8.GetString(
-                        (byte[])ea.BasicProperties.Headers!["type"]);
+                    var sessionBytes =
+                        headers["sessionId"] as byte[]
+                        ?? (headers["sessionId"] as ReadOnlyMemory<byte>?)?.ToArray();
+
+                    var typeBytes =
+                        headers["type"] as byte[]
+                        ?? (headers["type"] as ReadOnlyMemory<byte>?)?.ToArray();
+
+                    var sessionId = Encoding.UTF8.GetString(sessionBytes!);
+                    var type = Encoding.UTF8.GetString(typeBytes!);
 
                     var id = Guid.Parse(sessionId);
-
-                    using var scope = _scopeFactory.CreateScope();
 
                     var sessionService =
                         scope.ServiceProvider.GetRequiredService<SignSessionService>();
 
-                    // END SESSION
                     if (type == "end")
                     {
                         await sessionService.EndAsync(id);
@@ -111,22 +88,21 @@ namespace TransGuide.Services.Services
                         return;
                     }
 
-                    // AI PROCESSING
-                    var ai = scope.ServiceProvider.GetRequiredService<AiService>();
+                    var ai =
+                        scope.ServiceProvider.GetRequiredService<AiService>();
 
-                    var base64 = Convert.ToBase64String(body);
-
-                    var result = await ai.Predict(base64);
+                    var result = await ai.Predict(ea.Body.ToArray());
 
                     await sessionService.UpdateWordAsync(id, result);
 
                     await _channel!.BasicAckAsync(ea.DeliveryTag, false);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine("❌ Consumer Error: " + ex.Message);
-
-                    await _channel!.BasicNackAsync(ea.DeliveryTag, false, true);
+                    await _channel!.BasicNackAsync(
+                        ea.DeliveryTag,
+                        false,
+                        false);
                 }
             };
 
@@ -135,28 +111,7 @@ namespace TransGuide.Services.Services
                 autoAck: false,
                 consumer: consumer);
 
-            Console.WriteLine("🚀 Consumer Running");
-
-            // Keep alive
             await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-
-        // =========================
-        // CLEANUP
-        // =========================
-        public override async Task StopAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (_channel != null)
-                    await _channel.CloseAsync();
-
-                if (_connection != null)
-                    await _connection.CloseAsync();
-            }
-            catch { }
-
-            await base.StopAsync(cancellationToken);
         }
     }
 }

@@ -15,24 +15,51 @@ public class SignResultController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(Guid id)
     {
+        if (id == Guid.Empty)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Invalid session id"
+            });
+        }
+
         var session = await _service.GetAsync(id);
 
-        // 🔥 أهم حل لمشكلة "Session Not Found"
+        
         if (session == null)
         {
             return Ok(new
             {
+                success = true,
                 status = "processing",
                 word = "",
-                ended = false
+                ended = false,
+                hasResult = false
             });
         }
 
+       
+        if (!session.IsEnded)
+        {
+            return Ok(new
+            {
+                success = true,
+                status = "processing",
+                word = session.Word ?? "",
+                ended = false,
+                hasResult = !string.IsNullOrEmpty(session.Word)
+            });
+        }
+
+        
         return Ok(new
         {
+            success = true,
+            status = "done",
             word = session.Word ?? "",
-            ended = session.IsEnded,
-            status = session.IsEnded ? "done" : "processing"
+            ended = true,
+            hasResult = !string.IsNullOrEmpty(session.Word)
         });
     }
 }
