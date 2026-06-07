@@ -40,5 +40,6 @@ namespace TransGuideApi.Controllers
                     new ApiExceptionResponse(500, "Something went wrong", ex.Message));
             }
         }
+       
     }
 }

@@ -14,6 +14,8 @@
            public Task<string> EditRoleAsync(EditRoleDto dto);
             public Task DeleteRoleAsync(int id);
            public Task<IReadOnlyList<RoleDto>> GetRolesAsync();
+
+            public  Task<IReadOnlyList<userdto>> GetUsersAsync();
            public Task<RoleDto> GetRoleByIdAsync(int id);
            public Task<string> UpdateUserRolesAsync(UpdateUserRolesDto dto);
            

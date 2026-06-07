@@ -15,6 +15,9 @@ namespace TransGuide.Data.Entities.Identity
 
         public  new string?  PhoneNumber { get; set; }
 
+        public string? ResetCode { get; set; }
+        public DateTime? ResetCodeExpiry { get; set; }
+
         public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
         public  ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }

@@ -123,5 +123,27 @@ namespace TransGuideApi.Controllers
             return Ok(result);
 
         }
+        [AllowAnonymous]
+        [HttpGet("GetRoute/{id}")]
+        public async Task<IActionResult> GetRouteById(int id)
+        {
+            var result = await _routeServices.GetRouteById(id);
+
+            if (result == null)
+                return NotFound(new ApiExceptionResponse(404, "Route not found"));
+
+            return Ok(result);
+        }
+        [AllowAnonymous]
+        [HttpGet("GetAllRoutes")]
+        public async Task<IActionResult> GetAllRoutes(string? search, int pageIndex = 1, int pageSize = 10)
+        {
+            var result = await _routeServices.GetAllRoutes(search, pageIndex, pageSize);
+
+            if (result == null || result.Data.Count == 0)
+                return NotFound(new ApiExceptionResponse(404, "No routes found"));
+
+            return Ok(result);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.MappingProfiles.Outputs;
 
 namespace TransGuide.Data.Services
 {
@@ -11,16 +12,13 @@ namespace TransGuide.Data.Services
 
         Task<LoginResponse> GoogleLoginAsync(string idToken);
 
-        Task<(bool Succeeded, string Message)> UpdateUserDataAsync(string userId, UpdateUserDataRequest model);
+        Task<UserProfileDto?> GetCurrentUserAsync(string userId);
 
-        Task<(bool Succeeded, string Message)> UpdatePasswordAsync(string userId, UpdatePasswordRequest model);
+        Task<(bool Succeeded, string Message)> UpdateCurrentUserAsync(string userId, UserProfileDto model);
 
-        Task<(bool Succeeded, string Message)> ForgotPasswordAsync(ForgotPasswordRequest model);
-
-        Task<bool> VerifyResetCodeAsync(string email, string code);
-
-        Task<(bool Succeeded, string Message)> ResetPasswordAsync(ResetPasswordRequest model);
-
+        Task<string> SendResetPasswordCode(string email);
+        Task<string> ConfirmResetCode(string email, string code);
+        Task<string> ResetPassword(string email, string password);
         public  Task<int> GetUsersCount();
     }
 }

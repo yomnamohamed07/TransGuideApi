@@ -1,25 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TransGuide.Data.MappingProfiles.Inputs;
-using TransGuide.Data.Services;
-using TransGuide.Services.Services;
 
-[Route("api/[controller]")]
 [ApiController]
+[Route("api/sign")]
 public class SignController : ControllerBase
 {
-    private readonly IFramePublisher _publisher;
     private readonly SignSessionService _service;
 
-    public SignController(
-        IFramePublisher publisher,
-        SignSessionService service)
+    public SignController(SignSessionService service)
     {
-        _publisher = publisher;
         _service = service;
     }
 
-    // CREATE SESSION
-
+    // create session
     [HttpPost("create")]
     public async Task<IActionResult> Create()
     {
@@ -28,75 +20,30 @@ public class SignController : ControllerBase
         return Ok(new
         {
             success = true,
-            sessionId = id,
-            message = "Session created successfully"
+            sessionId = id
         });
     }
 
-
-    // SEND FRAME
-
-    [HttpPost("frame")]
-    public async Task<IActionResult> Frame([FromForm] FrameDto dto)
-    {
-        if (dto.SessionId == Guid.Empty)
-        {
-            return BadRequest(new
-            {
-                success = false,
-                message = "Invalid session id"
-            });
-        }
-
-        if (dto.File == null || dto.File.Length == 0)
-        {
-            return BadRequest(new
-            {
-                success = false,
-                message = "Empty frame"
-            });
-        }
-
-        using var ms = new MemoryStream();
-        await dto.File.CopyToAsync(ms);
-
-        var bytes = ms.ToArray();
-
-        await _publisher.PublishAsync(
-            bytes,
-            dto.SessionId.ToString(),
-            dto.Type);
-
-        return Ok(new
-        {
-            success = true,
-            message = "Frame received",
-            sessionId = dto.SessionId,
-            type = dto.Type
-        });
-    }
-
-
-    // END SESSION
-
+    // end session manually
     [HttpPost("end/{id}")]
     public async Task<IActionResult> End(Guid id)
     {
-        if (id == Guid.Empty)
+        var result = await _service.EndSessionAsync(id);
+
+        if (!result)
         {
-            return BadRequest(new
+            return NotFound(new
             {
                 success = false,
-                message = "Invalid session id"
+                message = "Session not found"
             });
         }
-
-        await _service.EndAsync(id);
 
         return Ok(new
         {
             success = true,
-            message = "Session ended"
+            message = "Session ended",
+            sessionId = id
         });
     }
 }

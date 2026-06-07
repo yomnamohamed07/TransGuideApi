@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.MappingProfiles.Inputs;
+using TransGuide.Data.MappingProfiles.Outputs;
 using TransGuide.Data.Services;
 
 namespace TransGuideApi.Controllers
@@ -64,61 +67,60 @@ namespace TransGuideApi.Controllers
             });
         }
 
-        [HttpPost("update-logged-user-data")]
+        // ================= GET CURRENT USER =================
+        [HttpGet("me")]
         [Authorize]
-        public async Task<IActionResult> UpdateLoggedUserData(UpdateUserDataRequest model)
+        public async Task<IActionResult> GetMe()
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { message = "Cannot identify the user." });
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var (succeeded, message) = await _authService.UpdateUserDataAsync(userId, model);
-            return succeeded ? Ok(new { message }) : BadRequest(new { message });
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var user = await _authService.GetCurrentUserAsync(userId);
+
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(user);
         }
 
-        [HttpPost("update-logged-user-password")]
+        // ================= UPDATE CURRENT USER =================
+        [HttpPut("me")]
         [Authorize]
-        public async Task<IActionResult> UpdateLoggedUserPassword(UpdatePasswordRequest model)
+        public async Task<IActionResult> UpdateMe([FromBody] UserProfileDto model)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { message = "Unauthorized." });
+                return Unauthorized(new { message = "Unauthorized" });
 
-            var (succeeded, message) = await _authService.UpdatePasswordAsync(userId, model);
-            return succeeded ? Ok(new { message }) : BadRequest(new { message });
+            var (succeeded, message) = await _authService.UpdateCurrentUserAsync(userId, model);
+
+            return succeeded
+                ? Ok(new { message })
+                : BadRequest(new { message });
         }
 
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest model)
+        [HttpPost("send-reset-code")]
+        public async Task<IActionResult> SendResetCode([FromBody] SendResetPasswordRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { message = "Invalid input data." });
-
-            var (succeeded, message) = await _authService.ForgotPasswordAsync(model);
-            return succeeded ? Ok(new { message }) : BadRequest(new { message });
+            var result = await _authService.SendResetPasswordCode(request.Email);
+            return Ok(result);
         }
 
-        [HttpPost("verify-reset-code")]
-        public async Task<IActionResult> VerifyResetCode(VerifyResetCodeRequest model)
+        [HttpPost("confirm-reset-code")]
+        public async Task<IActionResult> ConfirmResetCode([FromBody] ConfirmResetCodeRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { message = "Invalid input data." });
-
-            var isValid = await _authService.VerifyResetCodeAsync(model.Email, model.Code);
-            if (!isValid)
-                return BadRequest(new { message = "Invalid or expired reset code." });
-
-            return Ok(new { message = "Reset code is valid." });
+            var result = await _authService.ConfirmResetCode(request.Email, request.Code);
+            return Ok(result);
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordRequest model)
+        public async Task<IActionResult> ResetPassword([FromBody] TransGuide.Data.MappingProfiles.Inputs.ResetPasswordRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { message = "Invalid input data." });
-
-            var (succeeded, message) = await _authService.ResetPasswordAsync(model);
-            return succeeded ? Ok(new { message }) : BadRequest(new { message });
+            var result = await _authService.ResetPassword(request.Email, request.Password);
+            return Ok(result);
         }
 
         [HttpGet("UsersCount")]

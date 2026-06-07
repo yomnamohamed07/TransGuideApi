@@ -11,6 +11,7 @@ using TransGuide.Data.Services;
 using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Infrustructure.data;
 
+
 namespace TransGuideApi
 {
     public class Program
@@ -53,15 +54,14 @@ namespace TransGuideApi
 
             builder.Services.AddInMemoryRateLimiting();
             builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-
-        
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowAnyOrigin();
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
                 });
             });
 
@@ -88,15 +88,15 @@ namespace TransGuideApi
                     await UserSeeding.SeedAsync(userManager);
 
                     
-                    var geo = services.GetRequiredService<IGeoLocationService>();
-                    var stationRepo = services.GetRequiredService<IGenericRepository<Station>>();
+                   // var geo = services.GetRequiredService<IGeoLocationService>();
+                   // var stationRepo = services.GetRequiredService<IGenericRepository<Station>>();
 
-                    var stations = await stationRepo.GetAllAsync();
+                   // var stations = await stationRepo.GetAllAsync();
 
-                    if (stations != null && stations.Any())
-                    {
-                        await geo.AddStationsAsync(stations);
-                    }
+                  //  if (stations != null && stations.Any())
+                  //  {
+                     //   await geo.AddStationsAsync(stations);
+                  //  }
                 }
                 catch (Exception ex)
                 {
@@ -105,7 +105,6 @@ namespace TransGuideApi
                 }
             }
 
-        
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -115,20 +114,23 @@ namespace TransGuideApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors("AllowFrontend");
+            app.UseHttpsRedirection();
 
             app.UseMiddleware<ExceptionMiddleWare>();
 
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseRouting();
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+            app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();
 
+
             app.MapControllers();
+            app.MapHub<SignHub>("/signHub");
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.Run();
         }

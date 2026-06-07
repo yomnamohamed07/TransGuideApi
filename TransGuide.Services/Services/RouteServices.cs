@@ -5,6 +5,7 @@ using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Data.Helper;
 using TransGuide.Data.MappingProfiles.Inputs;
+using TransGuide.Data.MappingProfiles.Outputs;
 using TransGuide.Data.MaPppingProfiles;
 using TransGuide.Data.Services;
 
@@ -133,6 +134,104 @@ namespace TransGuide.Services.Services
             await transGuideDbContext.SaveChangesAsync();
 
             return true;
+        }
+
+        // =========================
+        // GET ALL ROUTES
+        // =========================
+        public async Task<Pagination<RouteShowDto>> GetAllRoutes(
+            string? search,
+            int pageIndex = 1,
+            int pageSize = 10)
+        {
+            var query = transGuideDbContext.Routes
+                .Where(x => !x.IsDeleted)
+                .AsQueryable();
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(x =>
+                    x.Name.Contains(search) ||
+                    x.StartPoint.Contains(search) ||
+                    x.EndPoint.Contains(search) ||
+                    x.Region.Contains(search));
+            }
+
+            // Includes
+            query = query
+                .Include(x => x.Status)
+                .Include(x => x.Type)
+                .Include(x => x.ParentRoute)
+                .Include(x => x.RouteStations)
+                    .ThenInclude(rs => rs.Station);
+
+            var count = await query.CountAsync();
+
+            var data = await query
+                .OrderBy(x => x.Name)
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new RouteShowDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    StartPoint = x.StartPoint,
+                    EndPoint = x.EndPoint,
+                    Region = x.Region,
+                    Description = x.Description,
+                    TicketPrice = x.TicketPrice,
+                    AverageTimeInMinutes = x.AverageTimeInMinutes,
+
+                    Status = x.Status.Name,
+                    Type = x.Type.Name,
+
+                    ParentRouteName = x.ParentRoute != null ? x.ParentRoute.Name : null,
+
+                    StationsCount = x.RouteStations.Count
+                })
+                .ToListAsync();
+
+            return new Pagination<RouteShowDto>(
+                pageIndex,
+                pageSize,
+                data,
+                count
+            );
+        }
+
+
+        public async Task<RouteShowDto> GetRouteById(int id)
+        {
+            var route = await transGuideDbContext.Routes
+                .Include(x => x.Status)
+                .Include(x => x.Type)
+                .Include(x => x.ParentRoute)
+                .Include(x => x.RouteStations)
+                    .ThenInclude(rs => rs.Station)
+                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+
+            if (route == null)
+                throw new Exception("Route not found");
+
+            return new RouteShowDto
+            {
+                Id = route.Id,
+                Name = route.Name,
+                StartPoint = route.StartPoint,
+                EndPoint = route.EndPoint,
+                Region = route.Region,
+                Description = route.Description,
+                TicketPrice = route.TicketPrice,
+                AverageTimeInMinutes = route.AverageTimeInMinutes,
+
+                Status = route.Status.Name,
+                Type = route.Type.Name,
+
+                ParentRouteName = route.ParentRoute != null ? route.ParentRoute.Name : null,
+
+                StationsCount = route.RouteStations.Count
+            };
         }
 
     }

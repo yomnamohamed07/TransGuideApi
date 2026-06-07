@@ -1,40 +1,73 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Text;
 using System.Text.Json;
+using TransGuide.Data.MappingProfiles.Inputs;
 
-namespace TransGuide.Services.Services
+public class AiService
 {
-    public class AiService
+    private readonly HttpClient _http;
+    private readonly IConfiguration _config;
+
+    public AiService(HttpClient http, IConfiguration config)
     {
-        private readonly HttpClient _http;
-        private readonly IConfiguration _config;
+        _http = http;
+        _config = config;
 
-        public AiService(HttpClient http, IConfiguration config)
-        {
-            _http = http;
-            _config = config;
-            _http.Timeout = TimeSpan.FromSeconds(30);
-        }
+        _http.Timeout = TimeSpan.FromSeconds(5);
+    }
 
-        public async Task<string> Predict(byte[] imageBytes)
+    public async Task<PredictionResponse> PredictAsync(
+        Guid sessionId,
+        float[] landmarks)
+    {
+        try
         {
             var url = _config["AI:Url"];
 
-            using var content = new MultipartFormDataContent();
-            content.Add(new ByteArrayContent(imageBytes), "file", "frame.jpg");
+            var body = new
+            {
+                session_id = sessionId,
+                landmarks = landmarks
+            };
+
+            var json = JsonSerializer.Serialize(body);
+
+            var content = new StringContent(
+                json,
+                Encoding.UTF8,
+                "application/json"
+            );
 
             var response = await _http.PostAsync(url, content);
 
-            var json = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                return new PredictionResponse
+                {
+                    status = "ERROR_AI"
+                };
+            }
 
-            var result =
-                JsonSerializer.Deserialize<AiPredictionResponse>(json);
+            var result = await response.Content.ReadAsStringAsync();
 
-            return result?.Prediction ?? "";
+            var prediction = JsonSerializer.Deserialize<PredictionResponse>(
+                result,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            return prediction ?? new PredictionResponse
+            {
+                status = "EMPTY_RESPONSE"
+            };
         }
-    }
-
-    public class AiPredictionResponse
-    {
-        public string Prediction { get; set; } = "";
+        catch
+        {
+            return new PredictionResponse
+            {
+                status = "ERROR_AI"
+            };
+        }
     }
 }

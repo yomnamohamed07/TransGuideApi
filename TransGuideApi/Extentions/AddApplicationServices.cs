@@ -17,6 +17,8 @@ using TransGuide.Infrustructure.Respositories;
 using TransiGuide.Data.Repositories;
 using TransiGuide.Infrastructure.Repositories;
 using TransiGuide.Services.Services;
+using TransGuide.Data.MappingProfiles;
+
 
 namespace TransGuideApi.Extentions
 {
@@ -69,6 +71,7 @@ namespace TransGuideApi.Extentions
             services.AddScoped<IRouteServices, RouteServices>();
             services.AddScoped<IStationService, StationService>();
             services.AddScoped<IVoiceServices, VoiceServices>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<SignSessionService>();
             services.AddHostedService<SessionWatcher>();
           
@@ -79,15 +82,20 @@ namespace TransGuideApi.Extentions
 
             services.AddHttpClient<AiService>();
 
-            services.Configure<RabbitMqSettings>(
-                configuration.GetSection("RabbitMQ"));
+          //  services.Configure<RabbitMqSettings>(
+               // configuration.GetSection("RabbitMQ"));
 
-            services.AddHostedService<SignConsumer>();
+            //services.AddHostedService<SignConsumer>();
 
           
             services.AddSignalR();
 
-         
+            services.AddSingleton(resolver =>
+               resolver.GetRequiredService<IConfiguration>()
+                   .GetSection("EmailSettings")
+                      .Get<EmailSettings>());
+
+
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();

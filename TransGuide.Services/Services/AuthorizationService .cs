@@ -76,7 +76,22 @@ namespace TransGuide.Services.Services
 
             return roles;
         }
+        public async Task<IReadOnlyList<userdto>> GetUsersAsync()
+        {
+            var users = _userManager.Users
+                .Select(r => new userdto
+                {
+                    Id = r.Id,
+                    FullName = r.FullName,
+                    Address = r.Address,
+                    Email = r.Email,
+                    PhoneNumber = r.PhoneNumber
 
+                })
+                .ToList();
+
+            return users;
+        }
         public async Task<RoleDto> GetRoleByIdAsync(int id)
         {
             var role = await _roleManager.FindByIdAsync(id.ToString());

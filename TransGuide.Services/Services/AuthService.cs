@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using TransGuide.Data.Entities.Identity;
 using TransGuide.Data.MappingProfiles;
+using TransGuide.Data.MappingProfiles.Outputs;
 using TransGuide.Data.Services;
 
 namespace TransGuide.Services.Services
@@ -16,18 +17,18 @@ namespace TransGuide.Services.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<UserProfile> _userManager;
-        private readonly ResetCodeService _resetCodeService;
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
 
         public AuthService(
             UserManager<UserProfile> userManager,
-            ResetCodeService resetCodeService,
+            IEmailService emailService,
             IMapper mapper,
             IConfiguration config)
         {
             _userManager = userManager;
-            _resetCodeService = resetCodeService;
+            _emailService = emailService;
             _mapper = mapper;
             _config = config;
         }
@@ -116,90 +117,35 @@ namespace TransGuide.Services.Services
             };
         }
 
-        // ================= UPDATE USER DATA =================
-        public async Task<(bool Succeeded, string Message)> UpdateUserDataAsync(string userId, UpdateUserDataRequest model)
+        // ================= GET =================
+        public async Task<UserProfileDto?> GetCurrentUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
-                return (false, "User not found.");
+                return null;
 
-            if (!string.IsNullOrEmpty(model.FullName))
-                user.FullName = model.FullName;
+            return _mapper.Map<UserProfileDto>(user);
+        }
 
-            if (!string.IsNullOrEmpty(model.Country))
-                user.Country = model.Country;
+        // ================= UPDATE =================
+        public async Task<(bool Succeeded, string Message)> UpdateCurrentUserAsync(string userId, UserProfileDto model)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
 
-            if (!string.IsNullOrEmpty(model.Address))
-                user.Address = model.Address;
+            if (user == null)
+                return (false, "User not found");
+
+            _mapper.Map(model, user);
 
             var result = await _userManager.UpdateAsync(user);
 
             return result.Succeeded
-                ? (true, "User data has been successfully updated.")
+                ? (true, "Updated successfully")
                 : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        // ================= UPDATE PASSWORD =================
-        public async Task<(bool Succeeded, string Message)> UpdatePasswordAsync(string userId, UpdatePasswordRequest model)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
 
-            if (user == null)
-                return (false, "User not found.");
-
-            var isValid = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
-
-            if (!isValid)
-                return (false, "Current password is incorrect.");
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
-
-            return result.Succeeded
-                ? (true, "Password updated successfully.")
-                : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
-        }
-
-        // ================= FORGOT PASSWORD =================
-        public async Task<(bool Succeeded, string Message)> ForgotPasswordAsync(ForgotPasswordRequest model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-
-            if (user == null)
-                return (false, "User not found.");
-
-            var code = _resetCodeService.GenerateCode(model.Email);
-            Console.WriteLine($"[DEV] Reset code for {model.Email}: {code}");
-
-            return (true, "Password reset code sent.");
-        }
-
-        public Task<bool> VerifyResetCodeAsync(string email, string code)
-        {
-            return Task.FromResult(_resetCodeService.IsValid(email, code));
-        }
-
-        // ================= RESET PASSWORD =================
-        public async Task<(bool Succeeded, string Message)> ResetPasswordAsync(ResetPasswordRequest model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-
-            if (user == null)
-                return (false, "User not found.");
-
-            if (!_resetCodeService.IsValid(model.Email, model.Code))
-                return (false, "Invalid or expired code.");
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
-
-            _resetCodeService.RemoveCode(model.Email);
-
-            return result.Succeeded
-                ? (true, "Password has been reset successfully.")
-                : (false, string.Join(", ", result.Errors.Select(e => e.Description)));
-        }
 
         // ================= JWT GENERATION =================
         private async Task<string> GenerateJwtToken(UserProfile user)
@@ -237,6 +183,89 @@ namespace TransGuide.Services.Services
         public async Task<int> GetUsersCount()
         {
             return await _userManager.Users.CountAsync();
+        }
+
+        public async Task<string> SendResetPasswordCode(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return "UserNotFound";
+
+            var code = GenerateCode();
+
+            user.ResetCode = code;
+            user.ResetCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+            await _userManager.UpdateAsync(user);
+
+            await _emailService.SendEmail(
+                user.Email,
+                BuildEmail(code),
+                "Reset Password Code"
+            );
+
+            return "Success";
+        }
+
+        public async Task<string> ConfirmResetCode(string email, string code)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return "UserNotFound";
+
+            if (user.ResetCode == null || user.ResetCodeExpiry == null)
+                return "NoCodeGenerated";
+
+            if (user.ResetCodeExpiry < DateTime.UtcNow)
+                return "ExpiredCode";
+
+            if (user.ResetCode != code)
+                return "InvalidCode";
+
+            return "Success";
+        }
+
+        public async Task<string> ResetPassword(string email, string password)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return "UserNotFound";
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var result = await _userManager.ResetPasswordAsync(user, token, password);
+
+            if (!result.Succeeded)
+                return "Failed";
+
+            user.ResetCode = null;
+            user.ResetCodeExpiry = null;
+
+            await _userManager.UpdateAsync(user);
+
+            return "Success";
+        }
+
+        // helpers
+        private string GenerateCode()
+        {
+            var random = new Random();
+
+            return new string(Enumerable.Range(0, 6)
+                .Select(_ => "0123456789"[random.Next(10)]).ToArray());
+        }
+
+        private string BuildEmail(string code)
+        {
+            return $@"
+            <h2>Password Reset</h2>
+            <p>Your OTP code is:</p>
+            <h1 style='color:red'>{code}</h1>
+            <p>Valid for 10 minutes</p>
+        ";
         }
     }
 }

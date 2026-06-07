@@ -59,6 +59,15 @@ namespace TransGuideApi.Controllers
 
             return Ok(result);
         }
+        [HttpGet("GetAllUsres")]
+        public async Task<IActionResult> GetAllUsress()
+        {
+            var result = await _authorizationService.GetUsersAsync();
+            if (result == null || result.Count == 0)
+                return NotFound(new ApiExceptionResponse(404, "No roles found"));
+
+            return Ok(result);
+        }
 
         [HttpGet("GetRole")]
         public async Task<IActionResult> GetRoleById(int id)
