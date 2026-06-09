@@ -19,7 +19,7 @@ namespace TransGuideApi.Extentions
 
             Services.AddScoped<IAuthService, AuthService>();
             Services.AddScoped<IAuthorizationService, AuthorizationService>();
-            Services.AddSingleton<ResetCodeService>();
+           
 
            
             Services.AddIdentity<UserProfile, IdentityRole<int>>(options =>

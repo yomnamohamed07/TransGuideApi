@@ -78,7 +78,7 @@ namespace TransGuideApi.Extentions
             services.AddScoped<IGeoLocationService, GeoLocationService>();
 
         
-            services.AddSingleton<IFramePublisher, FramePublisher>();
+            
 
             services.AddHttpClient<AiService>();
 

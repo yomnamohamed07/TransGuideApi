@@ -13,7 +13,7 @@ namespace TransGuide.Services.Mapper
         {
 
             CreateMap<AddRouteDto, Route>();
-
+            CreateMap<UpdateRouteDto, Route>();
             CreateMap<Route, RouteDto>()
                 .ForMember(dest => dest.RouteName,
                     opt => opt.MapFrom(src => src.Name))

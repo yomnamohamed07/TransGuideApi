@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TransGuide.Services.Services;
-using TransGuide.Services.Services;
 
 public class SessionWatcher : BackgroundService
 {
