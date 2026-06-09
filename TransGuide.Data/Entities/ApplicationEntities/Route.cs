@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using TransGuide.Data.Entities.Identity;
 
 namespace TransGuide.Data.Entities.ApplicationEntities
@@ -28,10 +24,22 @@ namespace TransGuide.Data.Entities.ApplicationEntities
 
         public  RouteStatus Status { get; set; }
 
-        public ICollection<UserProfile> UserProfiles { get; set; } = new HashSet<UserProfile>();
+        public int RouteTypeId { get; set; }
+
+        public  RouteType Type { get; set; }
+
+        public  int?  ParentRouteId { get; set; }
+
+        public Route ParentRoute { get; set; }
+
+        public ICollection<Route> SubRoutes { get; set; } = new HashSet<Route>();
+
+        public bool IsDeleted { get; set; } = false;
+
+      //  public ICollection<UserProfile> UserProfiles { get; set; } = new HashSet<UserProfile>();
 
 		public ICollection<RouteStation> RouteStations { get; set; } = new HashSet<RouteStation>();
 
-		//public ICollection<Station> Stations { get; set; } = new HashSet<Station>();
+		public ICollection<Feedback>  Feedbacks { get; set; } = new HashSet<Feedback>();
 	}
 }

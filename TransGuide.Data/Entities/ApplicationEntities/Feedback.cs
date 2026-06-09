@@ -1,35 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TransGuide.Data.Entities.Identity;
 
 namespace TransGuide.Data.Entities.ApplicationEntities
 {
-	public  class Feedback
-	{
-        public int Id  { get; set; }
+    public class Feedback
+    {
+        public int Id { get; set; }
 
-        public  string  Comment  { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
 
-        // date 
-        public  DateTime DateTime  { get; set; }
+        public string Reason { get; set; }
+        public string TimeSlot { get; set; }
 
-        public  int RatingId  { get; set; }
+        public string Message { get; set; }
+        public string Comment { get; set; }
 
-		public Rating Rating  { get; set; }
+        public DateTime CreatedAt { get; set; }
 
-        public  int  UserProfileId { get; set; }
+        public int RatingId { get; set; }
+        public Rating Rating { get; set; }
 
-        public  int  RouteId { get; set; }
+        public int UserProfileId { get; set; }
+        public UserProfile UserProfile { get; set; }
 
-		public int TripStatusId { get; set; }
+        public int RouteId { get; set; }
+        public Route Route { get; set; }
 
+        public int TripStatusId { get; set; }
         public TripStatus TripStatus { get; set; }
-
-        public Route  Route { get; set; }
-
-        public  UserProfile UserProfile { get; set; }
     }
 }

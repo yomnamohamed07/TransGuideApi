@@ -1,22 +1,24 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using TransGuide.Data.Entities.ApplicationEntities;
+
 
 namespace TransGuide.Data.Entities.Identity
 {
 	public class UserProfile : IdentityUser<int>
 	{
+		public string? FullName { get; set; }
 
-		public string? Country { get; set; }
+        public string? Country { get; set; }
 
-		public string? Address { get; set; }
+	    public string? Address { get; set; }
 
-        public  string  PhoneNumber { get; set; }
+        public  new string?  PhoneNumber { get; set; }
 
-        public 	ICollection<Route> Route { get; set; } = new HashSet<Route>();
-	}
+        public string? ResetCode { get; set; }
+        public DateTime? ResetCodeExpiry { get; set; }
+
+        public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+        public  ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    }
 }

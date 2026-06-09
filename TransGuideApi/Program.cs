@@ -1,65 +1,138 @@
-using TransGuideApi.MiddleWare;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TransGuide.Data;
+using TransGuideApi.MiddleWare;
+using TransGuideApi.Extentions;
+using AspNetCoreRateLimit;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using TransGuide.Data.Entities.Identity;
+using TransGuide.Data.Repositories;
+using TransGuide.Data.Services;
+using TransGuide.Data.Entities.ApplicationEntities;
 using TransGuide.Infrustructure.data;
+
 
 namespace TransGuideApi
 {
-	public class Program
-	{
-		public static async Task Main(string[] args)
-		{
-			var builder = WebApplication.CreateBuilder(args);
+    public class Program
+    {
+        public static async Task Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-			// Add services to the container.
-			builder.Services.AddControllers();
-			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
-			//builder.Services.AddDbContext<TransGuideDbContext>(options =>
-	      //  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-			builder.Services.AddDbContext<TransGuideDbContext>(options =>
-			{
-				options.UseSqlServer(
-					builder.Configuration.GetConnectionString("DefaultConnection"));
+        
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
-				options.EnableSensitiveDataLogging();
-			});
+            
+            builder.Services.AddApplicationService(builder.Configuration);
+            builder.Services.AddIdentityService(builder.Configuration);
 
-			var app = builder.Build();
-			using (var scope = app.Services.CreateScope())
-			{
-				var services = scope.ServiceProvider;
-				var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            
+            builder.Services.AddDbContext<TransGuideDbContext>(options =>
+            {
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"));
 
-				try
-				{
-					var dbcontext = services.GetRequiredService<TransGuideDbContext>();
-					await dbcontext.Database.MigrateAsync();
-					await dataseeding.SeedAsync(dbcontext);
-				}
-				catch (Exception ex)
-				{
-					var logger = loggerFactory.CreateLogger<Program>();
-					logger.LogError(ex, "Error occurred during applying migration");
-				}
-			}
-			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment())
-			{
-				app.UseMiddleware<ExceptionMiddleWare>();
-				app.UseSwagger();
-				app.UseSwaggerUI();
-			}
+                options.EnableSensitiveDataLogging();
+            });
 
-			app.UseHttpsRedirection();
+            builder.Services.AddDbContext<TransGuideDbContext>(options =>
+            {
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("IdentityDefaultConnection"));
+            });
 
-			app.UseAuthorization();
+           
+            builder.Services.AddMemoryCache();
+            builder.Services.Configure<IpRateLimitOptions>(
+                builder.Configuration.GetSection("IpRateLimiting"));
+
+            builder.Services.Configure<IpRateLimitPolicies>(
+                builder.Configuration.GetSection("IpRateLimitPolicies"));
+
+            builder.Services.AddInMemoryRateLimiting();
+            builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+            var app = builder.Build();
+
+        
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+
+                try
+                {
+                    
+                    var dbcontext = services.GetRequiredService<TransGuideDbContext>();
+                    await dbcontext.Database.MigrateAsync();
+                    await dataseeding.SeedAsync(dbcontext);
+
+                  
+                    var userManager = services.GetRequiredService<UserManager<UserProfile>>();
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+                    await RoleSeeding.SeedAsync(roleManager);
+                    await UserSeeding.SeedAsync(userManager);
+
+                    
+                   // var geo = services.GetRequiredService<IGeoLocationService>();
+                   // var stationRepo = services.GetRequiredService<IGenericRepository<Station>>();
+
+                   // var stations = await stationRepo.GetAllAsync();
+
+                  //  if (stations != null && stations.Any())
+                  //  {
+                     //   await geo.AddStationsAsync(stations);
+                  //  }
+                }
+                catch (Exception ex)
+                {
+                    var logger = loggerFactory.CreateLogger<Program>();
+                    logger.LogError(ex, "Error occurred during startup seeding");
+                }
+            }
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseMiddleware<ExceptionMiddleWare>();
+
+            app.UseRouting();
+
+            app.UseCors("AllowFrontend");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
 
-			app.MapControllers();
+            app.MapControllers();
+            app.MapHub<SignHub>("/signHub");
 
-			app.Run();
-		}
-	}
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
+            app.Run();
+        }
+    }
 }

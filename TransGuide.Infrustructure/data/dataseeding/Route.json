@@ -1,217 +1,340 @@
 [
   {
+   
     "Name": "M5",
+    "RouteTypeId": 1,
     "StartPoint": "الحي الخامس",
     "EndPoint": "التحرير",
     "Region": "قطامية",
     "Description": "التجمع الخامس إلى التحرير مرورًا بشارع التسعين، محور المشير، العباسية، ورمسيس",
     "TicketPrice": 40,
     "AverageTimeInMinutes": 90,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "M8",
+    "RouteTypeId": 1,
     "StartPoint": "التجمع الخامس",
     "EndPoint": "التحرير",
     "Region": "قطامية",
     "Description": "التجمع الخامس الى جامعة القاهرة مرورا بشارع التسعين والطريق الدائرى ومصر القديمة",
     "TicketPrice": 40,
     "AverageTimeInMinutes": 90,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "M9",
+    "RouteTypeId": 1,
     "StartPoint": "التجمع الخامس",
     "EndPoint": "ميدان الاتحاد في المعادي",
     "Region": "قطامية",
     "Description": "الحي الخامس إلى ميدان الاتحاد في المعادي مرورًا بشارع التسعين والطريق الدائري وصقر قريش المعادي",
     "TicketPrice": 40,
     "AverageTimeInMinutes": 90,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "M10",
+    "RouteTypeId": 1,
     "StartPoint": "وادي دجلة",
     "EndPoint": "التحرير",
     "Region": "أكتوبر",
     "Description": "وادي دجلة إلى التحرير مرورًا بالحصري، محور 26 يوليو، نادي الزمالك، ورمسيس",
     "TicketPrice": 40,
     "AverageTimeInMinutes": 90,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+  
     "Name": "M21",
+    "RouteTypeId": 1,
     "StartPoint": "ليله القدر - أكتوبر",
     "EndPoint": "التحرير",
     "Region": "أكتوبر",
     "Description": "ليله القدر إلى التحرير مرورًا بميدان فودافون، بوابوات حدائق الاهرام والهرم وجامعة القاهرة",
     "TicketPrice": 40,
     "AverageTimeInMinutes": 100,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "M20",
+    "RouteTypeId": 1,
     "StartPoint": "الشيخ زايد",
     "EndPoint": "التحرير",
     "Region": "زايد",
     "Description": "من زايد الى جامعة القاهرة مرورا بهايبر وان وصفط اللبن",
     "TicketPrice": 35,
     "AverageTimeInMinutes": 50,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "M22",
+    "RouteTypeId": 1,
     "StartPoint": "حدائق أكتوبر",
     "EndPoint": "جامعة القاهرة",
     "Region": "زايد",
     "Description": "من حدائق اكتوبر الى جامعة القاهرة مرورا ببوابات حدائق الاهرام وشارع فيصل",
     "TicketPrice": 22,
     "AverageTimeInMinutes": 30,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "NC1",
+    "RouteTypeId": 1,
     "StartPoint": "قطامية - التجمع الثالث",
     "EndPoint": "التجمع الأول",
     "Region": "القاهرة الجديدة",
     "Description": "من  القطامية بالتجمع التالت الى التجمع الاول مرورا باربيلا والياسمين",
     "TicketPrice": 20,
     "AverageTimeInMinutes": 30,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "NC2",
+    "RouteTypeId": 1,
     "StartPoint": "قطامية - التجمع الثالث",
     "EndPoint": "لوتس",
     "Region": "القاهرة الجديدة",
     "Description": "من القطامية بالتجمع التالت الى اللوتس بالتجمع الخامس مرورا باربيلا والنرجس والجامعة الامريكيه",
     "TicketPrice": 22,
     "AverageTimeInMinutes": 50,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "NS5",
+    "RouteTypeId": 1,
     "StartPoint": "محطة المشتل - الشروق",
     "EndPoint": "المهندسين",
     "Region": "الشروق",
     "Description": "المشتل في الشروق إلى المهندسين مرورًا بطريق السويس، طيبة اللواء، وامتداد رمسيس",
     "TicketPrice": 35,
     "AverageTimeInMinutes": 75,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "NS7",
+    "RouteTypeId": 1,
     "StartPoint": "محطة المشتل - الشروق",
     "EndPoint": "سرايا القبة",
     "Region": "الشروق",
     "Description": "المشتل في الشروق إلى سرايا القبة مرورًا بطريق السويس، ميدان الساعة، وروكسي",
     "TicketPrice": 35,
     "AverageTimeInMinutes": 80,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "NS9",
+    "RouteTypeId": 1,
     "StartPoint": "محطة المشتل - الشروق",
     "EndPoint": "التجمع الخامس",
     "Region": "الشروق",
     "Description": "المشتل في الشروق إلى التجمع الخامس مرورًا بطريق السويس والرحاب حتى محطة الغاز",
     "TicketPrice": 35,
     "AverageTimeInMinutes": 80,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "NA13",
+    "RouteTypeId": 1,
     "StartPoint": "الاردنيه",
     "EndPoint": "حى اللورد",
     "Region": "العاشر من رمضان",
     "Description": "من الاردنية الى حى  اللودر",
     "TicketPrice": 12,
     "AverageTimeInMinutes": 80,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+ 
     "Name": "NA15",
+    "RouteTypeId": 1,
     "StartPoint": "الأردنيه",
     "EndPoint": "الحي الثالث",
     "Region": "العاشر من رمضان",
     "Description": "الأردنيه إلى الحي الثالث",
     "TicketPrice": 13,
     "AverageTimeInMinutes": 80,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "NA18",
+    "RouteTypeId": 1,
     "StartPoint": "الأردنية",
     "EndPoint": "سلطان عويدس",
     "Region": "العاشر من رمضان",
     "Description": "الأردنية إلى سلطان عويدس",
     "TicketPrice": 13,
     "AverageTimeInMinutes": 80,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "NA19",
+    "RouteTypeId": 1,
     "StartPoint": "الأردنية",
     "EndPoint": "الجامعة الاهليه",
     "Region": "العاشر من رمضان",
     "Description": "الأردنية إلى الجامعة الاهليه",
     "TicketPrice": 13,
     "AverageTimeInMinutes": 80,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "AN3",
+    "RouteTypeId": 1,
     "StartPoint": "عبور 2",
-    "EndPoint": "  سنترال الياسمين",
+    "EndPoint": "سنترال الياسمين",
     "Region": "عبور2",
     "Description": "عبور 2 إلى ياسمين سنترال مرورًا بمدرسة الحرية وماركت التيسير",
     "TicketPrice": 12,
     "AverageTimeInMinutes": 25,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+    
     "Name": "AN4",
+    "RouteTypeId": 1,
     "StartPoint": "كارفور",
     "EndPoint": "حي الباقوت",
     "Region": "عبور2",
-    "Description": "كارفور إلى حي الباقوت مرورًا بامون وطريق السادات ",
+    "Description": "كارفور إلى حي الباقوت مرورًا بامون وطريق السادات",
     "TicketPrice": 12,
     "AverageTimeInMinutes": 30,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "AN6",
+    "RouteTypeId": 1,
     "StartPoint": "موقف الشباب",
     "EndPoint": "مول الكرامة",
     "Region": "مجتمعات الشرق",
     "Description": "موقف الشباب إلى مول الكرامة مرورًا بحي الحرية أمامي، مدرسة الجمهورية، حي المجد، مدرسة الشيماء، وشارع عباد الرحمن",
     "TicketPrice": 18,
     "AverageTimeInMinutes": 28,
-    "RouteStatusId": 1
-  }
-,
+    "RouteStatusId": 1,
+    "ParentRouteId": null
+  },
   {
+   
     "Name": "Z4",
+    "RouteTypeId": 1,
     "StartPoint": "الشيخ زايد",
     "EndPoint": "دهشور",
     "Region": "مجتمعات الغرب",
     "Description": "الشيخ زايد إلى دهشور مرورًا بميدان جهينة وجنوب مصر",
     "TicketPrice": 20,
     "AverageTimeInMinutes": 30,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
   },
   {
+   
     "Name": "Z6",
+    "RouteTypeId": 1,
     "StartPoint": "هايبر وان",
     "EndPoint": "سادس",
-    "Region": "مجتمعات الغرب ",
+    "Region": "مجتمعات الغرب",
     "Description": "هايبر وان إلى سادس مرورًا بجنه والحصري",
     "TicketPrice": 20,
     "AverageTimeInMinutes": 50,
-    "RouteStatusId": 1
+    "RouteStatusId": 1,
+    "ParentRouteId": null
+  },
+  {
+   
+    "Name": "الخط الأول - حلوان / المرج الجديدة",
+    "RouteTypeId": 2,
+    "StartPoint": "حلوان",
+    "EndPoint": "المرج الجديدة",
+    "Region": "القاهرة الكبرى",
+    "Description": "خط المترو الأول يربط جنوب القاهرة بشمالها مرورًا بمصر القديمة والسيدة زينب ورمسيس والشهداء",
+    "TicketPrice": 25,
+    "AverageTimeInMinutes": 70,
+    "RouteStatusId": 1,
+    "ParentRouteId": null
+  },
+  {
+    
+    "Name": "الخط الثاني - شبرا الخيمة / المنيب",
+    "RouteTypeId": 2,
+    "StartPoint": "شبرا الخيمة",
+    "EndPoint": "المنيب",
+    "Region": "القاهرة الكبرى",
+    "Description": "خط المترو الثاني يربط شمال القاهرة بغربها مرورًا بالعتبة والدقي وجامعة القاهرة والجيزة",
+    "TicketPrice": 25,
+    "AverageTimeInMinutes": 60,
+    "RouteStatusId": 1,
+    "ParentRouteId": null
+  },
+  {
+   
+    "Name": "الخط الثالث - عتبة / عدلي منصور",
+    "RouteTypeId": 2,
+    "StartPoint": "العتبة",
+    "EndPoint": "عدلي منصور",
+    "Region": "القاهرة الكبرى",
+    "Description": "الخط الثالث الرئيسي يربط وسط القاهرة بشرقها مرورًا بالعباسية وأرض المعارض وهليوبوليس",
+    "TicketPrice": 25,
+    "AverageTimeInMinutes": 45,
+    "RouteStatusId": 1,
+    "ParentRouteId": null
+  },
+  {
+   
+    "Name": "الخط الثالث - اتجاه روض الفرج",
+    "RouteTypeId": 2,
+    "StartPoint": "العتبة",
+    "EndPoint": "روض الفرج",
+    "Region": "القاهرة الكبرى",
+    "Description": "امتداد الخط الثالث في اتجاه الشمال مرورًا بماسبيرو وروض الفرج",
+    "TicketPrice": 25,
+    "AverageTimeInMinutes": 55,
+    "RouteStatusId": 1,
+    "ParentRouteId": 24
+  },
+  {
+    
+    "Name": "الخط الثالث - اتجاه عدلي منصور",
+    "RouteTypeId": 2,
+    "StartPoint": "العتبة",
+    "EndPoint": "عدلي منصور",
+    "Region": "القاهرة الكبرى",
+    "Description": "امتداد الخط الثالث في اتجاه شرق القاهرة مرورًا بهليوبوليس والنزهة",
+    "TicketPrice": 25,
+    "AverageTimeInMinutes": 45,
+    "RouteStatusId": 1,
+    "ParentRouteId": 24
   }
 ]
-
-
-
-  

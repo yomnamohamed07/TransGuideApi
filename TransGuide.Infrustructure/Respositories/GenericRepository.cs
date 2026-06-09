@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 using TransGuide.Data;
 using TransGuide.Data.Repositories;
-using TransGuide.Infrustructure.data;
 
 namespace TransGuide.Infrastructure.Repositories;
 
@@ -14,7 +14,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _context = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync() =>
+    public virtual async Task<IEnumerable<T>> GetAllAsync() =>
         await _context.Set<T>().ToListAsync();
 
     public async Task<T?> GetByIdAsync(int id) =>
@@ -48,12 +48,24 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
 	public IQueryable<T> GetNoTracking()
 	{
-		return _dbcontext.Set<T>().AsNoTracking().AsQueryable();
+		return _context.Set<T>().AsNoTracking().AsQueryable();
 	}
 
 	public async Task SaveChangesAsync()
 	{
-		await _dbcontext.SaveChangesAsync();
+		await _context.SaveChangesAsync();
 	}
 
+    public async Task<bool> IsExist(int id)
+    {
+      var result =  await _context.Set<T>().FindAsync(id);
+        if (result!= null)
+            return true;
+        else return false;
+    }
+
+    public async Task<int> CountAsync()
+    {
+        return await _context.Set<T>().CountAsync();
+    }
 }

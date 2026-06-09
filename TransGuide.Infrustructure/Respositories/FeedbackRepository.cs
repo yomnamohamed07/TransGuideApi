@@ -1,11 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
 using TransGuide.Data;
 using TransGuide.Data.Entities.ApplicationEntities;
-using TransGuide.Data.Repositories;
+using TransGuide.Data.Respositories;
+using TransGuide.Infrastructure.Repositories;
 
-namespace TransGuide.Infrastructure.Repositories;
-
-public class FeedbackRepository : GenericRepository<Feedback>, IFeedbackRepository
+namespace TransGuide.Infrustructure.Respositories
 {
-    public FeedbackRepository(TransGuideDbContext context) : base(context) { }
+    public class FeedbackRepository : GenericRepository<Feedback> ,IFeedbackRepository
+    {
+        private readonly TransGuideDbContext context;
+
+        public FeedbackRepository(TransGuideDbContext context) : base(context)
+        {
+            this.context = context;
+        }
+    }
+
+
 }
